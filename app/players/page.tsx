@@ -11,6 +11,7 @@ export default function PlayersPage({ searchParams }: Props) {
   const searchQuery = typeof searchParams.q === 'string' ? searchParams.q : undefined
   const positionFilter = typeof searchParams.position === 'string' ? searchParams.position : undefined
   const teamFilter = typeof searchParams.team === 'string' ? searchParams.team : undefined
+  const sortParam = typeof searchParams.sort === 'string' ? searchParams.sort : undefined
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -26,7 +27,7 @@ export default function PlayersPage({ searchParams }: Props) {
       </Suspense>
 
       <Suspense fallback={<PlayerListSkeleton />}>
-        <PlayerList search={searchQuery} position={positionFilter} team={teamFilter} />
+        <PlayerList search={searchQuery} position={positionFilter} team={teamFilter} sort={sortParam} />
       </Suspense>
     </div>
   )

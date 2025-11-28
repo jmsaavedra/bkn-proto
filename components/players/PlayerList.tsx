@@ -12,9 +12,29 @@ interface PlayerListProps {
   search?: string
   position?: string
   team?: string
+  sort?: string
 }
 
-async function getPlayers(search?: string, position?: string, team?: string) {
+// Parse sort parameter into MongoDB sort object
+function getSortConfig(sort?: string): Record<string, 1 | -1> {
+  switch (sort) {
+    case 'name-desc':
+      return { 'name.last': -1, 'name.first': -1 }
+    case 'age-asc':
+      return { age: 1, 'name.last': 1 }
+    case 'age-desc':
+      return { age: -1, 'name.last': 1 }
+    case 'contract-desc':
+    case 'contract-asc':
+      // Contract sorting handled after fetch
+      return { 'name.last': 1, 'name.first': 1 }
+    case 'name-asc':
+    default:
+      return { 'name.last': 1, 'name.first': 1 }
+  }
+}
+
+async function getPlayers(search?: string, position?: string, team?: string, sort?: string) {
   try {
     await connectDB()
 
@@ -61,7 +81,7 @@ async function getPlayers(search?: string, position?: string, team?: string) {
     }
 
     const players = await Player.find(query)
-      .sort({ 'name.last': 1, 'name.first': 1 })
+      .sort(getSortConfig(sort))
       .limit(500)
       .populate('currentTeamId')
       .lean()
@@ -79,10 +99,25 @@ async function getPlayers(search?: string, position?: string, team?: string) {
     )
 
     // Attach contracts to players
-    const playersWithContracts = players.map(player => ({
+    let playersWithContracts = players.map(player => ({
       ...player,
       contract: contractMap.get(player._id.toString()) || null
     }))
+
+    // Sort by contract value if requested
+    if (sort === 'contract-desc') {
+      playersWithContracts.sort((a, b) => {
+        const aValue = a.contract?.totalValue || 0
+        const bValue = b.contract?.totalValue || 0
+        return bValue - aValue
+      })
+    } else if (sort === 'contract-asc') {
+      playersWithContracts.sort((a, b) => {
+        const aValue = a.contract?.totalValue || 0
+        const bValue = b.contract?.totalValue || 0
+        return aValue - bValue
+      })
+    }
 
     return playersWithContracts
   } catch (error) {
@@ -91,8 +126,8 @@ async function getPlayers(search?: string, position?: string, team?: string) {
   }
 }
 
-export async function PlayerList({ search, position, team }: PlayerListProps) {
-  const players = await getPlayers(search, position, team)
+export async function PlayerList({ search, position, team, sort }: PlayerListProps) {
+  const players = await getPlayers(search, position, team, sort)
 
   if (players.length === 0) {
     return (

@@ -6,9 +6,25 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDebouncedCallback } from 'use-debounce'
+
+const sortOptions = [
+  { value: 'name-asc', label: 'Name (A-Z)' },
+  { value: 'name-desc', label: 'Name (Z-A)' },
+  { value: 'age-asc', label: 'Age (Youngest)' },
+  { value: 'age-desc', label: 'Age (Oldest)' },
+  { value: 'contract-desc', label: 'Contract (Highest)' },
+  { value: 'contract-asc', label: 'Contract (Lowest)' },
+]
 
 const positions = [
   { value: 'Guard', label: 'G' },
@@ -28,18 +44,20 @@ export function PlayerFilters() {
   const [selectedPositions, setSelectedPositions] = useState<string[]>(
     searchParams.get('position')?.split(',').filter(Boolean) || []
   )
+  const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'name-asc')
 
-  const updateURL = useCallback((newSearch: string, newPositions: string[]) => {
+  const updateURL = useCallback((newSearch: string, newPositions: string[], newSort: string) => {
     const params = new URLSearchParams()
     if (newSearch) params.set('q', newSearch)
     if (newPositions.length > 0) params.set('position', newPositions.join(','))
+    if (newSort && newSort !== 'name-asc') params.set('sort', newSort)
 
     const queryString = params.toString()
     router.push(queryString ? `/players?${queryString}` : '/players')
   }, [router])
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
-    updateURL(value, selectedPositions)
+    updateURL(value, selectedPositions, sortBy)
   }, 300)
 
   const handleSearchChange = (value: string) => {
@@ -52,16 +70,22 @@ export function PlayerFilters() {
       ? selectedPositions.filter(p => p !== position)
       : [...selectedPositions, position]
     setSelectedPositions(newPositions)
-    updateURL(search, newPositions)
+    updateURL(search, newPositions, sortBy)
+  }
+
+  const handleSortChange = (value: string) => {
+    setSortBy(value)
+    updateURL(search, selectedPositions, value)
   }
 
   const clearFilters = () => {
     setSearch('')
     setSelectedPositions([])
+    setSortBy('name-asc')
     router.push('/players')
   }
 
-  const hasFilters = search || selectedPositions.length > 0
+  const hasFilters = search || selectedPositions.length > 0 || sortBy !== 'name-asc'
 
   return (
     <Card>
@@ -78,23 +102,41 @@ export function PlayerFilters() {
             />
           </div>
 
-          {/* Position Filters */}
-          <div>
-            <div className="text-sm font-medium mb-2">Position</div>
-            <div className="flex flex-wrap gap-2">
-              {positions.map((pos) => (
-                <Badge
-                  key={pos.value}
-                  variant={selectedPositions.includes(pos.value) ? 'default' : 'outline'}
-                  className={cn(
-                    'cursor-pointer',
-                    selectedPositions.includes(pos.value) && 'bg-white text-black'
-                  )}
-                  onClick={() => togglePosition(pos.value)}
-                >
-                  {pos.label}
-                </Badge>
-              ))}
+          {/* Position Filters and Sort */}
+          <div className="flex flex-col md:flex-row md:items-end gap-4">
+            <div className="flex-1">
+              <div className="text-sm font-medium mb-2">Position</div>
+              <div className="flex flex-wrap gap-2">
+                {positions.map((pos) => (
+                  <Badge
+                    key={pos.value}
+                    variant={selectedPositions.includes(pos.value) ? 'default' : 'outline'}
+                    className={cn(
+                      'cursor-pointer',
+                      selectedPositions.includes(pos.value) && 'bg-white text-black'
+                    )}
+                    onClick={() => togglePosition(pos.value)}
+                  >
+                    {pos.label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+            <div className="w-full md:w-48">
+              <div className="text-sm font-medium mb-2">Sort By</div>
+              <Select value={sortBy} onValueChange={handleSortChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {sortOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
