@@ -21,20 +21,18 @@ function getSeasonDateRange(season: string) {
   return { seasonStart, seasonEnd }
 }
 
-const LIMIT = 100
+const LIMIT = 50
+const MOBILE_LIMIT = 25
 
 async function getTransactions(type?: string, search?: string, season?: string) {
-  console.log('[TransactionList] getTransactions called', { type, search, season })
   try {
-    console.log('[TransactionList] Connecting to MongoDB...')
     await connectDB()
-    console.log('[TransactionList] Connected, querying transactions...')
 
     // Build query based on filters
     const query: Record<string, unknown> = {}
 
-    // Season filter (date range)
-    if (season) {
+    // Season filter (date range) - skip if "all" seasons selected
+    if (season && season !== 'all') {
       const { seasonStart, seasonEnd } = getSeasonDateRange(season)
       query.date = { $gte: seasonStart, $lte: seasonEnd }
     }
@@ -65,7 +63,6 @@ async function getTransactions(type?: string, search?: string, season?: string) 
       Transaction.countDocuments(query),
     ])
 
-    console.log('[TransactionList] Query complete, found:', transactions.length, 'of', totalCount, 'transactions')
     return { transactions, totalCount }
   } catch (error) {
     console.error('[TransactionList] Error fetching transactions:', error)
@@ -89,24 +86,38 @@ export async function TransactionList({ type, search, season }: TransactionListP
     )
   }
 
-  const showingAll = transactions.length >= totalCount
+  const showingAllDesktop = transactions.length >= totalCount
+  const mobileCount = Math.min(transactions.length, MOBILE_LIMIT)
+  const showingAllMobile = mobileCount >= totalCount
 
   return (
     <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        {showingAll
+      {/* Mobile count */}
+      <p className="text-sm text-muted-foreground md:hidden">
+        {showingAllMobile
+          ? `Showing ${totalCount} transaction${totalCount === 1 ? '' : 's'}`
+          : `Showing ${mobileCount} of ${totalCount} transactions`
+        }
+      </p>
+      {/* Desktop count */}
+      <p className="text-sm text-muted-foreground hidden md:block">
+        {showingAllDesktop
           ? `Showing ${totalCount} transaction${totalCount === 1 ? '' : 's'}`
           : `Showing ${transactions.length} of ${totalCount} transactions`
         }
       </p>
-      {transactions.map((transaction: any) => (
-        <TransactionCard
+      {transactions.map((transaction: any, index: number) => (
+        <div
           key={transaction._id.toString()}
-          transaction={{
-            ...transaction,
-            _id: transaction._id.toString(),
-          }}
-        />
+          className={index >= MOBILE_LIMIT ? 'hidden md:block' : ''}
+        >
+          <TransactionCard
+            transaction={{
+              ...transaction,
+              _id: transaction._id.toString(),
+            }}
+          />
+        </div>
       ))}
     </div>
   )

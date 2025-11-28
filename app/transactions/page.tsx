@@ -1,6 +1,7 @@
 import { Suspense } from 'react'
 import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
+import { SeasonSelector } from '@/components/SeasonSelector'
 import { Card, CardContent } from '@/components/ui/card'
 
 interface Props {
@@ -21,6 +22,13 @@ export default async function TransactionsPage({ searchParams }: Props) {
           Browse and filter NBA transactions
           <span className="hidden md:inline"> for the {season} season</span>
         </p>
+        {/* Mobile Season Selector */}
+        <div className="mt-3 flex items-center gap-2 md:hidden">
+          <span className="text-sm text-muted-foreground">Season</span>
+          <Suspense fallback={null}>
+            <SeasonSelector />
+          </Suspense>
+        </div>
       </div>
 
       <Suspense fallback={null}>

@@ -4,7 +4,6 @@ import { Suspense } from 'react'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { MobileNav } from '@/components/layout/MobileNav'
-import { BottomNav } from '@/components/layout/BottomNav'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -75,12 +74,9 @@ export default function RootLayout({
             <MobileNav />
           </Suspense>
 
-          <main className="container mx-auto px-4 py-4 md:py-6 pb-20 md:pb-6">
+          <main className="container mx-auto px-4 py-4 md:py-6">
             {children}
           </main>
-
-          {/* Mobile Bottom Navigation */}
-          <BottomNav />
         </div>
       </body>
     </html>

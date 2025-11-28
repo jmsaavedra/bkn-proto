@@ -1,8 +1,10 @@
+import { Suspense } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { SeasonSelector } from '@/components/SeasonSelector'
 import { ArrowRight, TrendingUp, Users, DollarSign, FileText, Target, BarChart3 } from 'lucide-react'
 import connectDB from '@/lib/mongodb'
 import Transaction from '@/lib/models/Transaction'
@@ -28,14 +30,19 @@ function getSeasonDateRange(season: string) {
 async function getDashboardStats(season: string) {
   await connectDB()
 
-  const { seasonStart, seasonEnd } = getSeasonDateRange(season)
-  const dateFilter = { date: { $gte: seasonStart, $lte: seasonEnd } }
+  // Skip date filter if "all" seasons selected
+  const dateFilter = season === 'all'
+    ? {}
+    : (() => {
+        const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+        return { date: { $gte: seasonStart, $lte: seasonEnd } }
+      })()
 
   const [transactionCount, tradeCount, playerCount, salaryCap] = await Promise.all([
     Transaction.countDocuments(dateFilter),
     Transaction.countDocuments({ ...dateFilter, type: 'TRADE' }),
     Player.countDocuments({ status: 'active' }),
-    SalaryCap.findOne({ season }).lean(),
+    season === 'all' ? SalaryCap.findOne({ season: '2024-25' }).lean() : SalaryCap.findOne({ season }).lean(),
   ])
 
   return {
@@ -50,11 +57,15 @@ async function getDashboardStats(season: string) {
 async function getRecentTransactions(season: string) {
   await connectDB()
 
-  const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+  // Skip date filter if "all" seasons selected
+  const query = season === 'all'
+    ? {}
+    : (() => {
+        const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+        return { date: { $gte: seasonStart, $lte: seasonEnd } }
+      })()
 
-  const transactions = await Transaction.find({
-    date: { $gte: seasonStart, $lte: seasonEnd }
-  })
+  const transactions = await Transaction.find(query)
     .sort({ date: -1 })
     .limit(5)
     .populate('teams.teamId')
@@ -124,6 +135,13 @@ export default async function Home({
               Analyze and evaluate NBA transactions from across the league.
               <span className="hidden md:inline"> Research trades, signings, and roster moves to build a championship roster.</span>
             </p>
+            {/* Mobile Season Selector */}
+            <div className="mt-4 flex items-center justify-center gap-2 md:hidden">
+              <span className="text-sm text-zinc-400">Season</span>
+              <Suspense fallback={null}>
+                <SeasonSelector />
+              </Suspense>
+            </div>
           </div>
         </div>
 
@@ -160,44 +178,36 @@ export default async function Home({
             icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
           />
         </div>
-        {/* Mobile horizontal scroll */}
-        <div className="flex md:hidden overflow-x-auto scrollbar-hide gap-3 pb-2 -mx-4 px-4 snap-x snap-mandatory">
-          <div className="min-w-[140px] snap-start">
-            <StatCard
-              title="Transactions"
-              value={stats.transactionCount.toLocaleString()}
-              subtitle={season}
-              icon={<FileText className="h-4 w-4 text-zinc-500" />}
-              compact
-            />
-          </div>
-          <div className="min-w-[140px] snap-start">
-            <StatCard
-              title="Trades"
-              value={stats.tradeCount.toLocaleString()}
-              subtitle={season}
-              icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
-              compact
-            />
-          </div>
-          <div className="min-w-[140px] snap-start">
-            <StatCard
-              title="Players"
-              value={stats.playerCount.toLocaleString()}
-              subtitle="Active"
-              icon={<Users className="h-4 w-4 text-zinc-500" />}
-              compact
-            />
-          </div>
-          <div className="min-w-[140px] snap-start">
-            <StatCard
-              title={`${season} Cap`}
-              value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
-              subtitle="Salary cap"
-              icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
-              compact
-            />
-          </div>
+        {/* Mobile 2x2 grid */}
+        <div className="grid grid-cols-2 gap-3 md:hidden">
+          <StatCard
+            title="Transactions"
+            value={stats.transactionCount.toLocaleString()}
+            subtitle={season}
+            icon={<FileText className="h-4 w-4 text-zinc-500" />}
+            compact
+          />
+          <StatCard
+            title="Trades"
+            value={stats.tradeCount.toLocaleString()}
+            subtitle={season}
+            icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
+            compact
+          />
+          <StatCard
+            title="Players"
+            value={stats.playerCount.toLocaleString()}
+            subtitle="Active"
+            icon={<Users className="h-4 w-4 text-zinc-500" />}
+            compact
+          />
+          <StatCard
+            title={`${season} Cap`}
+            value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
+            subtitle="Salary cap"
+            icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
+            compact
+          />
         </div>
       </section>
 
@@ -379,6 +389,9 @@ export default async function Home({
         </p>
         <p className="text-[10px] md:text-xs text-zinc-700 mt-1">
           Data sourced from NBA.com, Basketball-Reference, and Spotrac
+        </p>
+        <p className="text-[10px] md:text-xs text-zinc-600 mt-3">
+          a quick &amp; dirty prototype by Mak and <a href="https://jos.ph" className="underline hover:text-zinc-400 transition-colors">jos.ph</a>
         </p>
       </footer>
     </div>

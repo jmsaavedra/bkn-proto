@@ -19,6 +19,7 @@ const navigation = [
 ]
 
 const seasons = [
+  { value: 'all', label: 'All Seasons' },
   { value: '2024-25', label: '2024-25' },
   { value: '2023-24', label: '2023-24' },
   { value: '2022-23', label: '2022-23' },
@@ -83,7 +84,7 @@ export function Header() {
           <div className="flex items-center space-x-2 text-sm">
             <span className="text-nets-gray">Season</span>
             <Select value={selectedSeason} onValueChange={handleSeasonChange}>
-              <SelectTrigger className="w-[120px] h-8 bg-white/10 border-white/10 text-white font-semibold">
+              <SelectTrigger className="w-[130px] h-8 bg-white/10 border-white/10 text-white font-semibold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

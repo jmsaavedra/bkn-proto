@@ -68,17 +68,27 @@ export function TransactionFilters() {
   const [selectedTypes, setSelectedTypes] = useState<string[]>(
     searchParams.get('type')?.split(',').filter(Boolean) || []
   )
-  const [isExpanded, setIsExpanded] = useState(false)
+  const [isExpanded, setIsExpanded] = useState(true)
 
-  // Update URL when filters change
+  // Update URL when filters change - preserve existing params like season
   const updateURL = useCallback((newSearch: string, newTypes: string[]) => {
-    const params = new URLSearchParams()
-    if (newSearch) params.set('q', newSearch)
-    if (newTypes.length > 0) params.set('type', newTypes.join(','))
+    const params = new URLSearchParams(searchParams.toString())
+
+    if (newSearch) {
+      params.set('q', newSearch)
+    } else {
+      params.delete('q')
+    }
+
+    if (newTypes.length > 0) {
+      params.set('type', newTypes.join(','))
+    } else {
+      params.delete('type')
+    }
 
     const queryString = params.toString()
     router.push(queryString ? `/transactions?${queryString}` : '/transactions')
-  }, [router])
+  }, [router, searchParams])
 
   // Debounced search to avoid too many URL updates
   const debouncedSearch = useDebouncedCallback((value: string) => {
@@ -101,7 +111,9 @@ export function TransactionFilters() {
   const clearFilters = () => {
     setSearch('')
     setSelectedTypes([])
-    router.push('/transactions')
+    // Preserve season param when clearing filters
+    const season = searchParams.get('season')
+    router.push(season ? `/transactions?season=${season}` : '/transactions')
   }
 
   const hasFilters = search || selectedTypes.length > 0
@@ -154,8 +166,19 @@ export function TransactionFilters() {
               isExpanded ? 'max-h-96 mt-3 pt-3 border-t border-white/10' : 'max-h-0'
             )}
           >
-            <div className="text-xs font-medium text-muted-foreground mb-2">
-              Transaction Type
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-sm font-medium text-muted-foreground">
+                Transaction Type
+              </div>
+              {selectedTypes.length > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs text-muted-foreground hover:text-white flex items-center gap-1"
+                >
+                  <X className="h-3 w-3" />
+                  Clear Filters
+                </button>
+              )}
             </div>
             <div className="flex flex-wrap gap-1.5">
               {transactionTypes.map((type) => (
@@ -171,22 +194,6 @@ export function TransactionFilters() {
                 </button>
               ))}
             </div>
-
-            {/* Clear Filters - Mobile */}
-            {hasFilters && (
-              <div className="mt-3 pt-3 border-t border-white/10">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                  className="w-full h-9"
-                >
-                  <X className="mr-2 h-4 w-4" />
-                  Clear All Filters
-                </Button>
-              </div>
-            )}
-
           </div>
 
           {/* Selected Filters Pills (shown when collapsed) */}
