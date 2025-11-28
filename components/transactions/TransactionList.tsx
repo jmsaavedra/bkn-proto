@@ -4,16 +4,25 @@ import { TransactionCard } from './TransactionCard'
 import { Card, CardContent } from '@/components/ui/card'
 
 async function getTransactions() {
+  console.log('[TransactionList] getTransactions called')
   try {
+    console.log('[TransactionList] Connecting to MongoDB...')
     await connectDB()
+    console.log('[TransactionList] Connected, querying transactions...')
+
     const transactions = await Transaction.find({})
       .sort({ date: -1 })
       .limit(50)
       .populate('teams.teamId')
       .lean()
+
+    console.log('[TransactionList] Query complete, found:', transactions.length, 'transactions')
+    if (transactions.length > 0) {
+      console.log('[TransactionList] First transaction:', JSON.stringify(transactions[0], null, 2).substring(0, 500))
+    }
     return transactions
   } catch (error) {
-    console.error('Error fetching transactions:', error)
+    console.error('[TransactionList] Error fetching transactions:', error)
     return []
   }
 }
