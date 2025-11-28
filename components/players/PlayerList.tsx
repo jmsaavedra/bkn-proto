@@ -1,6 +1,7 @@
 import connectDB from '@/lib/mongodb'
 import Player from '@/lib/models/Player'
 import Team from '@/lib/models/Team'
+import Contract from '@/lib/models/Contract'
 import { PlayerCard } from './PlayerCard'
 import { Card, CardContent } from '@/components/ui/card'
 
@@ -61,11 +62,29 @@ async function getPlayers(search?: string, position?: string, team?: string) {
 
     const players = await Player.find(query)
       .sort({ 'name.last': 1, 'name.first': 1 })
-      .limit(100)
+      .limit(500)
       .populate('currentTeamId')
       .lean()
 
-    return players
+    // Fetch active contracts for all returned players
+    const playerIds = players.map(p => p._id)
+    const contracts = await Contract.find({
+      playerId: { $in: playerIds },
+      status: 'active'
+    }).lean()
+
+    // Create a map of playerId to contract
+    const contractMap = new Map(
+      contracts.map(c => [c.playerId.toString(), c])
+    )
+
+    // Attach contracts to players
+    const playersWithContracts = players.map(player => ({
+      ...player,
+      contract: contractMap.get(player._id.toString()) || null
+    }))
+
+    return playersWithContracts
   } catch (error) {
     console.error('[PlayerList] Error fetching players:', error)
     return []

@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { formatCurrency } from '@/lib/utils'
 
 interface PlayerCardProps {
   player: {
@@ -34,6 +35,12 @@ interface PlayerCardProps {
         apg: number
       }>
     }
+    contract?: {
+      totalValue: number
+      endSeason: string
+      years: number
+      type: string
+    } | null
   }
 }
 
@@ -119,6 +126,19 @@ export function PlayerCard({ player }: PlayerCardProps) {
                   <div>
                     <span className="text-muted-foreground">APG:</span>{' '}
                     <span className="font-medium">{latestStats.apg.toFixed(1)}</span>
+                  </div>
+                </div>
+              )}
+
+              {player.contract && (
+                <div className="flex gap-3 md:gap-4 text-xs md:text-sm mt-1 pt-1 border-t border-white/10">
+                  <div>
+                    <span className="text-muted-foreground">Contract:</span>{' '}
+                    <span className="font-medium text-green-400">{formatCurrency(player.contract.totalValue)}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Expires:</span>{' '}
+                    <span className="font-medium">{player.contract.endSeason}</span>
                   </div>
                 </div>
               )}
