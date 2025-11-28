@@ -3,7 +3,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronRight } from 'lucide-react'
-import { formatCurrency, formatDate, getScoreColor, getTransactionTypeClass } from '@/lib/utils'
+import { formatCurrency, formatDate, getScoreColor, getTransactionTypeClass, getTransactionBadgeVariant, formatTransactionType } from '@/lib/utils'
 
 interface TransactionCardProps {
   transaction: {
@@ -34,17 +34,7 @@ interface TransactionCardProps {
 }
 
 export function TransactionCard({ transaction }: TransactionCardProps) {
-  const typeBadgeVariant = {
-    TRADE: 'trade',
-    SIGNING: 'signing',
-    WAIVER: 'waiver',
-    EXTENSION: 'extension',
-    BUYOUT: 'buyout',
-    TWO_WAY: 'signing',
-    TEN_DAY: 'signing',
-    DRAFT_PICK: 'trade',
-    SIGN_AND_TRADE: 'trade',
-  }[transaction.type] as 'trade' | 'signing' | 'waiver' | 'extension' | 'buyout' || 'default'
+  const typeBadgeVariant = getTransactionBadgeVariant(transaction.type)
 
   const teamAbbrs = transaction.teams
     ?.map(t => t.teamId?.abbreviation)
@@ -60,7 +50,7 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
             <div className="flex items-start justify-between mb-2">
               <div className="flex items-center gap-2 flex-wrap">
                 <Badge variant={typeBadgeVariant} className="text-[10px] px-2 py-0.5">
-                  {transaction.type}
+                  {formatTransactionType(transaction.type)}
                 </Badge>
                 <span className="text-xs text-muted-foreground">
                   {formatDate(transaction.date)}
@@ -111,7 +101,7 @@ export function TransactionCard({ transaction }: TransactionCardProps) {
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3">
                 <Badge variant={typeBadgeVariant}>
-                  {transaction.type}
+                  {formatTransactionType(transaction.type)}
                 </Badge>
                 <span className="text-sm text-muted-foreground">
                   {formatDate(transaction.date)}

@@ -8,7 +8,7 @@ import connectDB from '@/lib/mongodb'
 import Transaction from '@/lib/models/Transaction'
 import Team from '@/lib/models/Team'
 import Player from '@/lib/models/Player'
-import { formatCurrency, formatDate, getScoreColor } from '@/lib/utils'
+import { formatCurrency, formatDate, getScoreColor, getTransactionBadgeVariant, formatTransactionType } from '@/lib/utils'
 
 // Ensure models are registered for populate
 void Team;
@@ -41,17 +41,7 @@ export default async function TransactionDetailPage({ params }: Props) {
     notFound()
   }
 
-  const typeBadgeVariant = {
-    TRADE: 'trade',
-    SIGNING: 'signing',
-    WAIVER: 'waiver',
-    EXTENSION: 'extension',
-    BUYOUT: 'buyout',
-    TWO_WAY: 'signing',
-    TEN_DAY: 'signing',
-    DRAFT_PICK: 'trade',
-    SIGN_AND_TRADE: 'trade',
-  }[transaction.type as string] as 'trade' | 'signing' | 'waiver' | 'extension' | 'buyout' || 'default'
+  const typeBadgeVariant = getTransactionBadgeVariant(transaction.type as string)
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -69,7 +59,7 @@ export default async function TransactionDetailPage({ params }: Props) {
         <div className="flex-1">
           <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
             <Badge variant={typeBadgeVariant} className="text-xs md:text-sm">
-              {transaction.type}
+              {formatTransactionType(transaction.type as string)}
             </Badge>
             <span className="text-xs md:text-sm text-muted-foreground">
               {formatDate(transaction.date)}
