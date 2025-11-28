@@ -9,12 +9,17 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        display: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        // Nets colors
+        // Brooklyn Nets official colors
         nets: {
           black: '#000000',
           white: '#FFFFFF',
           gray: '#707271',
+          silver: '#C4CED4',
         },
         // shadcn colors
         border: 'hsl(var(--border))',
