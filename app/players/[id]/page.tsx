@@ -8,9 +8,12 @@ import { Badge } from '@/components/ui/badge'
 import connectDB from '@/lib/mongodb'
 import Player from '@/lib/models/Player'
 import Team from '@/lib/models/Team'
+import Contract from '@/lib/models/Contract'
+import { formatCurrency } from '@/lib/utils'
 
-// Ensure Team model is registered for populate
+// Ensure models are registered for populate
 void Team;
+void Contract;
 
 interface Props {
   params: { id: string }
@@ -29,6 +32,20 @@ async function getPlayer(id: string) {
   }
 }
 
+async function getPlayerContracts(playerId: string) {
+  try {
+    await connectDB()
+    const contracts = await Contract.find({ playerId })
+      .populate('teamId')
+      .sort({ startSeason: -1 })
+      .lean()
+    return contracts
+  } catch (error) {
+    console.error('[PlayerDetail] Error fetching contracts:', error)
+    return []
+  }
+}
+
 function formatHeight(inches: number): string {
   const feet = Math.floor(inches / 12)
   const remainingInches = inches % 12
@@ -36,11 +53,17 @@ function formatHeight(inches: number): string {
 }
 
 export default async function PlayerDetailPage({ params }: Props) {
-  const player = await getPlayer(params.id)
+  const [player, contracts] = await Promise.all([
+    getPlayer(params.id),
+    getPlayerContracts(params.id),
+  ])
 
   if (!player) {
     notFound()
   }
+
+  // Get the active contract (most recent)
+  const activeContract = contracts.find((c: any) => c.status === 'active') || contracts[0]
 
   const statusBadgeVariant = {
     active: 'default',
@@ -211,6 +234,101 @@ export default async function PlayerDetailPage({ params }: Props) {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Contract Information */}
+      {contracts.length > 0 && (
+        <Card>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Contract History</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-6">
+            {contracts.map((contract: any, idx: number) => (
+              <div key={contract._id || idx} className={idx > 0 ? 'pt-6 border-t border-white/10' : ''}>
+                {/* Contract Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-lg">
+                        {contract.teamId?.abbreviation || 'Unknown Team'}
+                      </span>
+                      <Badge variant={contract.status === 'active' ? 'default' : 'secondary'} className="capitalize">
+                        {contract.status}
+                      </Badge>
+                      {contract.type && (
+                        <Badge variant="outline" className="capitalize">
+                          {contract.type.replace(/_/g, ' ')}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {contract.startSeason} - {contract.endSeason} ({contract.years} year{contract.years !== 1 ? 's' : ''})
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-xl font-bold">{formatCurrency(contract.totalValue)}</div>
+                    <div className="text-sm text-muted-foreground">Total Value</div>
+                  </div>
+                </div>
+
+                {/* Season Breakdown */}
+                {contract.seasons && contract.seasons.length > 0 && (
+                  <div className="overflow-x-auto mb-4">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Season</th>
+                          <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Salary</th>
+                          <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Cap Hit</th>
+                          <th className="text-right py-2 pr-4 font-medium text-muted-foreground">Dead Cap</th>
+                          <th className="text-right py-2 font-medium text-muted-foreground">Guaranteed</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {contract.seasons.map((season: any, i: number) => (
+                          <tr key={i} className="border-b border-white/5 last:border-0">
+                            <td className="py-2 pr-4 font-medium">{season.season}</td>
+                            <td className="py-2 pr-4 text-right">{formatCurrency(season.salary)}</td>
+                            <td className="py-2 pr-4 text-right">{formatCurrency(season.capHit)}</td>
+                            <td className="py-2 pr-4 text-right">{formatCurrency(season.deadCap)}</td>
+                            <td className="py-2 text-right">
+                              {season.guaranteed ? (
+                                <Badge variant="default" className="text-xs">Guaranteed</Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs">Non-Guaranteed</Badge>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {/* Contract Options & Clauses */}
+                {(contract.options?.playerOption || contract.options?.teamOption || contract.options?.earlyTermination || contract.tradeKicker || contract.noTradeClause) && (
+                  <div className="flex flex-wrap gap-2">
+                    {contract.options?.playerOption && (
+                      <Badge variant="secondary">Player Option: {contract.options.playerOption}</Badge>
+                    )}
+                    {contract.options?.teamOption && (
+                      <Badge variant="secondary">Team Option: {contract.options.teamOption}</Badge>
+                    )}
+                    {contract.options?.earlyTermination && (
+                      <Badge variant="secondary">ETO: {contract.options.earlyTermination}</Badge>
+                    )}
+                    {contract.tradeKicker && (
+                      <Badge variant="outline">Trade Kicker: {contract.tradeKicker}%</Badge>
+                    )}
+                    {contract.noTradeClause && (
+                      <Badge variant="outline">No-Trade Clause</Badge>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
       )}
