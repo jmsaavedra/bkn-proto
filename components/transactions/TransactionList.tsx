@@ -1,7 +1,11 @@
 import connectDB from '@/lib/mongodb'
 import Transaction from '@/lib/models/Transaction'
+import Team from '@/lib/models/Team' // Required for populate
 import { TransactionCard } from './TransactionCard'
 import { Card, CardContent } from '@/components/ui/card'
+
+// Ensure Team model is registered for populate
+void Team;
 
 async function getTransactions() {
   console.log('[TransactionList] getTransactions called')

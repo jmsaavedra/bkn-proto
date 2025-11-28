@@ -6,21 +6,30 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import connectDB from '@/lib/mongodb'
 import Transaction from '@/lib/models/Transaction'
+import Team from '@/lib/models/Team'
+import Player from '@/lib/models/Player'
 import { formatCurrency, formatDate, getScoreColor } from '@/lib/utils'
+
+// Ensure models are registered for populate
+void Team;
+void Player;
 
 interface Props {
   params: { id: string }
 }
 
 async function getTransaction(id: string) {
+  console.log('[TransactionDetail] Looking up transaction:', id)
   try {
     await connectDB()
     const transaction = await Transaction.findById(id)
       .populate('players')
       .populate('teams.teamId')
       .lean()
+    console.log('[TransactionDetail] Found:', transaction ? 'yes' : 'no')
     return transaction
-  } catch {
+  } catch (error) {
+    console.error('[TransactionDetail] Error:', error)
     return null
   }
 }
