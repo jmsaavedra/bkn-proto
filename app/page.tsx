@@ -17,14 +17,25 @@ void Team
 // Make page dynamic so it fetches fresh data
 export const dynamic = 'force-dynamic'
 
-async function getDashboardStats() {
+// Helper to get date range for an NBA season (e.g., "2024-25" = Oct 2024 - Sep 2025)
+function getSeasonDateRange(season: string) {
+  const [startYear] = season.split('-').map(Number)
+  const seasonStart = new Date(startYear, 9, 1) // October 1st
+  const seasonEnd = new Date(startYear + 1, 8, 30) // September 30th
+  return { seasonStart, seasonEnd }
+}
+
+async function getDashboardStats(season: string) {
   await connectDB()
 
+  const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+  const dateFilter = { date: { $gte: seasonStart, $lte: seasonEnd } }
+
   const [transactionCount, tradeCount, playerCount, salaryCap] = await Promise.all([
-    Transaction.countDocuments(),
-    Transaction.countDocuments({ type: 'TRADE' }),
+    Transaction.countDocuments(dateFilter),
+    Transaction.countDocuments({ ...dateFilter, type: 'TRADE' }),
     Player.countDocuments({ status: 'active' }),
-    SalaryCap.findOne({ season: '2024-25' }).lean(),
+    SalaryCap.findOne({ season }).lean(),
   ])
 
   return {
@@ -32,13 +43,18 @@ async function getDashboardStats() {
     tradeCount,
     playerCount,
     salaryCap,
+    season,
   }
 }
 
-async function getRecentTransactions() {
+async function getRecentTransactions(season: string) {
   await connectDB()
 
-  const transactions = await Transaction.find()
+  const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+
+  const transactions = await Transaction.find({
+    date: { $gte: seasonStart, $lte: seasonEnd }
+  })
     .sort({ date: -1 })
     .limit(5)
     .populate('teams.teamId')
@@ -47,10 +63,17 @@ async function getRecentTransactions() {
   return transactions
 }
 
-export default async function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ season?: string }>
+}) {
+  const params = await searchParams
+  const season = params.season || '2024-25'
+
   const [stats, recentTransactions] = await Promise.all([
-    getDashboardStats(),
-    getRecentTransactions(),
+    getDashboardStats(season),
+    getRecentTransactions(season),
   ])
   return (
     <div className="space-y-6 md:space-y-8">
@@ -115,13 +138,13 @@ export default async function Home() {
           <StatCard
             title="Transactions"
             value={stats.transactionCount.toLocaleString()}
-            subtitle="In database"
+            subtitle={`${season} season`}
             icon={<FileText className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
             title="Trades"
             value={stats.tradeCount.toLocaleString()}
-            subtitle="Trade transactions"
+            subtitle={`${season} season`}
             icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
@@ -131,8 +154,8 @@ export default async function Home() {
             icon={<Users className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
-            title="2024-25 Cap"
-            value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+            title={`${season} Cap`}
+            value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
             subtitle="Salary cap"
             icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
           />
@@ -143,7 +166,7 @@ export default async function Home() {
             <StatCard
               title="Transactions"
               value={stats.transactionCount.toLocaleString()}
-              subtitle="In database"
+              subtitle={season}
               icon={<FileText className="h-4 w-4 text-zinc-500" />}
               compact
             />
@@ -152,7 +175,7 @@ export default async function Home() {
             <StatCard
               title="Trades"
               value={stats.tradeCount.toLocaleString()}
-              subtitle="Trade transactions"
+              subtitle={season}
               icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
               compact
             />
@@ -168,8 +191,8 @@ export default async function Home() {
           </div>
           <div className="min-w-[140px] snap-start">
             <StatCard
-              title="2024-25 Cap"
-              value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+              title={`${season} Cap`}
+              value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
               subtitle="Salary cap"
               icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
               compact
@@ -230,8 +253,8 @@ export default async function Home() {
       {/* Salary Cap Quick Reference */}
       <section>
         <div className="flex items-center justify-between mb-3 md:mb-4">
-          <h2 className="text-lg md:text-xl font-semibold text-white">2024-25 Salary Cap</h2>
-          <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider">2023 CBA</span>
+          <h2 className="text-lg md:text-xl font-semibold text-white">{season} Salary Cap</h2>
+          <span className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-wider">CBA</span>
         </div>
         <Card className="border-white/10">
           <CardContent className="p-4 md:p-6">
@@ -240,25 +263,25 @@ export default async function Home() {
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Salary Cap</p>
                 <p className="text-2xl font-bold text-white">
-                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Luxury Tax</p>
                 <p className="text-2xl font-bold text-white">
-                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : '$170.8M'}
+                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">First Apron</p>
                 <p className="text-2xl font-bold text-white">
-                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : '$178.1M'}
+                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Second Apron</p>
                 <p className="text-2xl font-bold text-white">
-                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : '$188.9M'}
+                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
             </div>
@@ -267,25 +290,25 @@ export default async function Home() {
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Salary Cap</p>
                 <p className="text-xl font-bold text-white">
-                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Luxury Tax</p>
                 <p className="text-xl font-bold text-white">
-                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : '$170.8M'}
+                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">First Apron</p>
                 <p className="text-xl font-bold text-white">
-                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : '$178.1M'}
+                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Second Apron</p>
                 <p className="text-xl font-bold text-white">
-                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : '$188.9M'}
+                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : 'N/A'}
                 </p>
               </div>
             </div>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Menu, X } from 'lucide-react'
 import {
@@ -30,8 +30,16 @@ const seasons = [
 
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
-  const [selectedSeason, setSelectedSeason] = useState('2024-25')
   const pathname = usePathname()
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const selectedSeason = searchParams.get('season') || '2024-25'
+
+  const handleSeasonChange = (season: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('season', season)
+    router.push(`${pathname}?${params.toString()}`)
+  }
 
   // Close menu when route changes
   useEffect(() => {
@@ -121,8 +129,8 @@ export function MobileNav() {
         <div className="px-4 pb-4">
           <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
             <span className="text-sm text-nets-gray">Season</span>
-            <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-              <SelectTrigger className="w-[100px] h-8 bg-white/10 border-white/10 text-white font-semibold">
+            <Select value={selectedSeason} onValueChange={handleSeasonChange}>
+              <SelectTrigger className="w-[120px] h-8 bg-white/10 border-white/10 text-white font-semibold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

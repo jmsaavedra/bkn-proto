@@ -10,10 +10,21 @@ void Team;
 interface TransactionListProps {
   type?: string
   search?: string
+  season?: string
 }
 
-async function getTransactions(type?: string, search?: string) {
-  console.log('[TransactionList] getTransactions called', { type, search })
+// Helper to get date range for an NBA season (e.g., "2024-25" = Oct 2024 - Sep 2025)
+function getSeasonDateRange(season: string) {
+  const [startYear] = season.split('-').map(Number)
+  const seasonStart = new Date(startYear, 9, 1) // October 1st
+  const seasonEnd = new Date(startYear + 1, 8, 30) // September 30th
+  return { seasonStart, seasonEnd }
+}
+
+const LIMIT = 100
+
+async function getTransactions(type?: string, search?: string, season?: string) {
+  console.log('[TransactionList] getTransactions called', { type, search, season })
   try {
     console.log('[TransactionList] Connecting to MongoDB...')
     await connectDB()
@@ -21,6 +32,12 @@ async function getTransactions(type?: string, search?: string) {
 
     // Build query based on filters
     const query: Record<string, unknown> = {}
+
+    // Season filter (date range)
+    if (season) {
+      const { seasonStart, seasonEnd } = getSeasonDateRange(season)
+      query.date = { $gte: seasonStart, $lte: seasonEnd }
+    }
 
     // Type filter (comma-separated list)
     if (type) {
@@ -38,22 +55,26 @@ async function getTransactions(type?: string, search?: string) {
       ]
     }
 
-    const transactions = await Transaction.find(query)
-      .sort({ date: -1 })
-      .limit(100)
-      .populate('teams.teamId')
-      .lean()
+    // Run count and find in parallel
+    const [transactions, totalCount] = await Promise.all([
+      Transaction.find(query)
+        .sort({ date: -1 })
+        .limit(LIMIT)
+        .populate('teams.teamId')
+        .lean(),
+      Transaction.countDocuments(query),
+    ])
 
-    console.log('[TransactionList] Query complete, found:', transactions.length, 'transactions')
-    return transactions
+    console.log('[TransactionList] Query complete, found:', transactions.length, 'of', totalCount, 'transactions')
+    return { transactions, totalCount }
   } catch (error) {
     console.error('[TransactionList] Error fetching transactions:', error)
-    return []
+    return { transactions: [], totalCount: 0 }
   }
 }
 
-export async function TransactionList({ type, search }: TransactionListProps) {
-  const transactions = await getTransactions(type, search)
+export async function TransactionList({ type, search, season }: TransactionListProps) {
+  const { transactions, totalCount } = await getTransactions(type, search, season)
 
   if (transactions.length === 0) {
     return (
@@ -61,30 +82,22 @@ export async function TransactionList({ type, search }: TransactionListProps) {
         <CardContent className="py-12 text-center text-muted-foreground">
           <p className="text-lg font-medium">No transactions found</p>
           <p className="text-sm mt-2">
-            Run the seeding scripts to populate the database with transaction data.
+            Try adjusting your filters or selecting a different season.
           </p>
-          <pre className="mt-4 p-4 bg-muted rounded-lg text-left text-xs overflow-auto max-w-lg mx-auto">
-{`cd scripts/
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-
-python seed_teams.py
-python seed_salary_cap.py
-python seed_players.py
-python seed_contracts.py
-python seed_transactions.py
-python calculate_evaluations.py`}
-          </pre>
         </CardContent>
       </Card>
     )
   }
 
+  const showingAll = transactions.length >= totalCount
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Showing {transactions.length} transactions
+        {showingAll
+          ? `Showing ${totalCount} transaction${totalCount === 1 ? '' : 's'}`
+          : `Showing ${transactions.length} of ${totalCount} transactions`
+        }
       </p>
       {transactions.map((transaction: any) => (
         <TransactionCard

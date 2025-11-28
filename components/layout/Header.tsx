@@ -1,9 +1,8 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { usePathname } from 'next/navigation'
+import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   Select,
@@ -29,7 +28,15 @@ const seasons = [
 
 export function Header() {
   const pathname = usePathname()
-  const [selectedSeason, setSelectedSeason] = useState('2024-25')
+  const searchParams = useSearchParams()
+  const router = useRouter()
+  const selectedSeason = searchParams.get('season') || '2024-25'
+
+  const handleSeasonChange = (season: string) => {
+    const params = new URLSearchParams(searchParams.toString())
+    params.set('season', season)
+    router.push(`${pathname}?${params.toString()}`)
+  }
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-white/10 bg-black/95 backdrop-blur supports-[backdrop-filter]:bg-black/80 hidden md:block">
@@ -75,8 +82,8 @@ export function Header() {
         <div className="flex flex-1 items-center justify-end space-x-4">
           <div className="flex items-center space-x-2 text-sm">
             <span className="text-nets-gray">Season</span>
-            <Select value={selectedSeason} onValueChange={setSelectedSeason}>
-              <SelectTrigger className="w-[100px] h-8 bg-white/10 border-white/10 text-white font-semibold">
+            <Select value={selectedSeason} onValueChange={handleSeasonChange}>
+              <SelectTrigger className="w-[120px] h-8 bg-white/10 border-white/10 text-white font-semibold">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

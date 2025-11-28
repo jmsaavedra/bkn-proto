@@ -4,12 +4,14 @@ import { TransactionFilters } from '@/components/transactions/TransactionFilters
 import { Card, CardContent } from '@/components/ui/card'
 
 interface Props {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }
 
-export default function TransactionsPage({ searchParams }: Props) {
-  const typeFilter = typeof searchParams.type === 'string' ? searchParams.type : undefined
-  const searchQuery = typeof searchParams.q === 'string' ? searchParams.q : undefined
+export default async function TransactionsPage({ searchParams }: Props) {
+  const params = await searchParams
+  const typeFilter = typeof params.type === 'string' ? params.type : undefined
+  const searchQuery = typeof params.q === 'string' ? params.q : undefined
+  const season = typeof params.season === 'string' ? params.season : '2024-25'
 
   return (
     <div className="space-y-4 md:space-y-6">
@@ -17,7 +19,7 @@ export default function TransactionsPage({ searchParams }: Props) {
         <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Transactions</h1>
         <p className="text-sm md:text-base text-muted-foreground">
           Browse and filter NBA transactions
-          <span className="hidden md:inline"> from the past 5 years</span>
+          <span className="hidden md:inline"> for the {season} season</span>
         </p>
       </div>
 
@@ -26,7 +28,7 @@ export default function TransactionsPage({ searchParams }: Props) {
       </Suspense>
 
       <Suspense fallback={<TransactionListSkeleton />}>
-        <TransactionList type={typeFilter} search={searchQuery} />
+        <TransactionList type={typeFilter} search={searchQuery} season={season} />
       </Suspense>
     </div>
   )

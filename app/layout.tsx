@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import { Suspense } from 'react'
 import './globals.css'
 import { Header } from '@/components/layout/Header'
 import { MobileNav } from '@/components/layout/MobileNav'
@@ -66,9 +67,13 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen bg-background">
           {/* Desktop Header */}
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           {/* Mobile Header */}
-          <MobileNav />
+          <Suspense fallback={null}>
+            <MobileNav />
+          </Suspense>
 
           <main className="container mx-auto px-4 py-4 md:py-6 pb-20 md:pb-6">
             {children}
