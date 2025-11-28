@@ -5,11 +5,12 @@ import { Card, CardContent } from '@/components/ui/card'
 
 export default function TransactionsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Transactions</h1>
-        <p className="text-muted-foreground">
-          Browse and filter NBA transactions from the past 5 years
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Transactions</h1>
+        <p className="text-sm md:text-base text-muted-foreground">
+          Browse and filter NBA transactions
+          <span className="hidden md:inline"> from the past 5 years</span>
         </p>
       </div>
 
@@ -24,21 +25,20 @@ export default function TransactionsPage() {
 
 function TransactionListSkeleton() {
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {[1, 2, 3, 4, 5].map((i) => (
         <Card key={i}>
-          <CardContent className="p-6">
+          <CardContent className="p-4 md:p-6">
             <div className="animate-pulse space-y-3">
               <div className="flex justify-between">
-                <div className="h-4 w-24 bg-muted rounded" />
-                <div className="h-4 w-16 bg-muted rounded" />
+                <div className="h-4 w-20 md:w-24 bg-muted rounded" />
+                <div className="h-4 w-12 md:w-16 bg-muted rounded" />
               </div>
-              <div className="h-6 w-48 bg-muted rounded" />
-              <div className="h-4 w-full bg-muted rounded" />
+              <div className="h-5 md:h-6 w-40 md:w-48 bg-muted rounded" />
+              <div className="h-4 w-full bg-muted rounded hidden md:block" />
               <div className="flex gap-2">
-                <div className="h-6 w-20 bg-muted rounded" />
-                <div className="h-6 w-20 bg-muted rounded" />
-                <div className="h-6 w-20 bg-muted rounded" />
+                <div className="h-5 md:h-6 w-16 md:w-20 bg-muted rounded" />
+                <div className="h-5 md:h-6 w-16 md:w-20 bg-muted rounded" />
               </div>
             </div>
           </CardContent>

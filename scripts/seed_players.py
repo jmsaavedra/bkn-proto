@@ -164,10 +164,28 @@ def seed_players(limit=None):
 
             age = calculate_age(birth_date) if birth_date else 25
 
-            # Parse draft info
+            # Parse draft info (handle 'Undrafted' players)
             draft_year = player_info.get('DRAFT_YEAR', '')
             draft_round = player_info.get('DRAFT_ROUND', '')
             draft_number = player_info.get('DRAFT_NUMBER', '')
+
+            # Check if player is undrafted
+            is_undrafted = (
+                draft_year == 'Undrafted' or
+                draft_round == 'Undrafted' or
+                draft_number == 'Undrafted' or
+                not draft_year or not draft_round or not draft_number
+            )
+
+            # Parse draft values safely
+            def safe_int(val, default=None):
+                """Convert to int, returning default for non-numeric values"""
+                if val is None or val == '' or val == 'Undrafted':
+                    return default
+                try:
+                    return int(val)
+                except (ValueError, TypeError):
+                    return default
 
             # Get current team
             current_team_abbr = player_info.get('TEAM_ABBREVIATION', '')
@@ -179,6 +197,22 @@ def seed_players(limit=None):
             first_name = name_parts[0] if len(name_parts) > 0 else ''
             last_name = name_parts[1] if len(name_parts) > 1 else ''
 
+            # Build draft info (None values for undrafted players)
+            draft_info = {
+                'year': safe_int(draft_year),
+                'round': safe_int(draft_round),
+                'pick': safe_int(draft_number),
+                'team': player_info.get('DRAFT_TEAM', '') if not is_undrafted else None,
+                'undrafted': is_undrafted,
+            }
+
+            # Parse weight safely
+            weight_val = player_info.get('WEIGHT', '')
+            try:
+                weight = int(weight_val) if weight_val else 200
+            except (ValueError, TypeError):
+                weight = 200
+
             # Build player document
             player_doc = {
                 'nbaId': player['id'],
@@ -189,16 +223,11 @@ def seed_players(limit=None):
                 },
                 'position': player_info.get('POSITION', 'G'),
                 'height': player_info.get('HEIGHT', '').replace("'", '').replace('"', '').replace('-', ''),
-                'weight': int(player_info.get('WEIGHT', 200)),
+                'weight': weight,
                 'birthDate': birth_date,
                 'age': age,
                 'country': player_info.get('COUNTRY', 'USA'),
-                'draft': {
-                    'year': int(draft_year) if draft_year else 2020,
-                    'round': int(draft_round) if draft_round else 1,
-                    'pick': int(draft_number) if draft_number else 1,
-                    'team': player_info.get('TEAM_ABBREVIATION', 'UNK'),
-                },
+                'draft': draft_info,
                 'currentTeamId': current_team_id,
                 'status': 'active',
                 'trajectory': {

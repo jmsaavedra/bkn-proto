@@ -15,10 +15,11 @@ export interface IPlayer extends Document {
   age: number;
   country: string;
   draft: {
-    year: number;
-    round: number;
-    pick: number;
-    team: string;
+    year: number | null;
+    round: number | null;
+    pick: number | null;
+    team: string | null;
+    undrafted: boolean;
   };
   currentTeamId: Types.ObjectId;
   status: 'active' | 'inactive' | 'retired' | 'gleague';
@@ -86,7 +87,8 @@ const PlayerSchema = new Schema<IPlayer>(
     },
     birthDate: {
       type: Date,
-      required: true,
+      required: false,
+      default: null,
     },
     age: {
       type: Number,
@@ -100,19 +102,28 @@ const PlayerSchema = new Schema<IPlayer>(
     draft: {
       year: {
         type: Number,
-        required: true,
+        required: false,
+        default: null,
       },
       round: {
         type: Number,
-        required: true,
+        required: false,
+        default: null,
       },
       pick: {
         type: Number,
-        required: true,
+        required: false,
+        default: null,
       },
       team: {
         type: String,
+        required: false,
+        default: null,
+      },
+      undrafted: {
+        type: Boolean,
         required: true,
+        default: false,
       },
     },
     currentTeamId: {

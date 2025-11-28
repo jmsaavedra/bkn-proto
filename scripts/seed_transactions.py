@@ -39,7 +39,9 @@ def get_player_by_name(db, name):
         return player['_id']
 
     # Try case-insensitive match
-    player = db['players'].find_one({'name.full': {'$regex': f'^{re.escape(name)}$', '$options': 'i'}})
+    escaped_name = re.escape(name)
+    regex_pattern = '^' + escaped_name + '$'
+    player = db['players'].find_one({'name.full': {'$regex': regex_pattern, '$options': 'i'}})
     if player:
         return player['_id']
 

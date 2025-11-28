@@ -1,25 +1,25 @@
 # NBA Data Seeding Script Requirements
 
 # Database
-pymongo==4.6.0
-python-dotenv==1.0.0
+pymongo>=4.6.0
+python-dotenv>=1.0.0
 
 # NBA Data APIs
-nba-api==1.4.1
+nba-api>=1.4.1
 
 # HTTP Requests
-requests==2.31.0
+requests>=2.31.0
 
 # Web Scraping
-beautifulsoup4==4.12.2
-lxml==4.9.3
+beautifulsoup4>=4.12.2
+lxml>=5.0.0
 
-# Data Processing
-pandas==2.1.4
-numpy==1.26.2
+# Data Processing (Python 3.13 compatible)
+pandas>=2.2.0
+numpy>=2.0.0
 
 # Date/Time utilities
-python-dateutil==2.8.2
+python-dateutil>=2.8.2
 
 # Progress indicators
-tqdm==4.66.1
+tqdm>=4.66.1

@@ -61,8 +61,11 @@ python seed_salary_cap.py
 # Note: This takes ~10-15 minutes due to API rate limits
 python seed_players.py
 
-# 4. Seed player contracts (sample data)
-python seed_contracts.py
+# 4. Scrape REAL player contracts from HoopsHype (recommended)
+python scrape_contracts.py
+
+# OR use sample contracts for quick testing
+# python seed_contracts.py
 
 # 5. Seed transactions (sample data)
 python seed_transactions.py

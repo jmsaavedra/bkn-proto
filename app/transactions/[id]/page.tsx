@@ -45,39 +45,40 @@ export default async function TransactionDetailPage({ params }: Props) {
   }[transaction.type as string] as 'trade' | 'signing' | 'waiver' | 'extension' | 'buyout' || 'default'
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 md:space-y-6">
       {/* Back Button */}
       <Link href="/transactions">
-        <Button variant="ghost" size="sm">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Transactions
+        <Button variant="ghost" size="sm" className="h-9 px-2 md:px-3">
+          <ArrowLeft className="mr-1 md:mr-2 h-4 w-4" />
+          <span className="hidden md:inline">Back to Transactions</span>
+          <span className="md:hidden">Back</span>
         </Button>
       </Link>
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <div className="flex items-center gap-3 mb-2">
-            <Badge variant={typeBadgeVariant}>
+      {/* Header - Mobile Optimized */}
+      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
+            <Badge variant={typeBadgeVariant} className="text-xs md:text-sm">
               {transaction.type}
             </Badge>
-            <span className="text-muted-foreground">
+            <span className="text-xs md:text-sm text-muted-foreground">
               {formatDate(transaction.date)}
             </span>
           </div>
-          <h1 className="text-3xl font-bold">
+          <h1 className="text-xl md:text-3xl font-bold leading-tight">
             {transaction.details?.headline || 'Transaction Details'}
           </h1>
           {transaction.details?.description && (
-            <p className="text-muted-foreground mt-2 max-w-2xl">
+            <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-2xl">
               {transaction.details.description}
             </p>
           )}
         </div>
         {transaction.evaluation?.compositeScore !== undefined && (
-          <div className="text-right">
-            <div className="text-sm text-muted-foreground">Composite Score</div>
-            <div className={`text-4xl font-bold ${getScoreColor(transaction.evaluation.compositeScore)}`}>
+          <div className="flex items-center gap-3 md:block md:text-right bg-white/5 rounded-lg p-3 md:p-0 md:bg-transparent">
+            <div className="text-xs md:text-sm text-muted-foreground">Composite Score</div>
+            <div className={`text-3xl md:text-4xl font-bold ${getScoreColor(transaction.evaluation.compositeScore)}`}>
               {Math.round(transaction.evaluation.compositeScore)}
             </div>
           </div>
@@ -87,23 +88,23 @@ export default async function TransactionDetailPage({ params }: Props) {
       {/* Asset Exchange */}
       {transaction.teams && transaction.teams.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Asset Exchange</CardTitle>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Asset Exchange</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
               {transaction.teams.map((team: any, index: number) => (
-                <div key={index} className="border rounded-lg p-4">
-                  <h3 className="font-semibold text-lg mb-3">
+                <div key={index} className="border border-white/10 rounded-lg p-3 md:p-4">
+                  <h3 className="font-semibold text-base md:text-lg mb-2 md:mb-3">
                     {team.teamId?.fullName || team.teamId?.name || 'Team'}
                   </h3>
 
                   {team.assetsIn && team.assetsIn.length > 0 && (
                     <div className="mb-3">
-                      <div className="text-sm text-muted-foreground mb-1">Receives:</div>
+                      <div className="text-xs md:text-sm text-muted-foreground mb-1">Receives:</div>
                       <ul className="space-y-1">
                         {team.assetsIn.map((asset: any, i: number) => (
-                          <li key={i} className="text-sm">
+                          <li key={i} className="text-xs md:text-sm">
                             {asset.type === 'player' && '👤 '}
                             {asset.type === 'pick' && '🎯 '}
                             {asset.type === 'cash' && '💵 '}
@@ -116,7 +117,7 @@ export default async function TransactionDetailPage({ params }: Props) {
                     </div>
                   )}
 
-                  <div className="pt-3 border-t text-sm">
+                  <div className="pt-2 md:pt-3 border-t border-white/10 text-xs md:text-sm space-y-1">
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Salary In:</span>
                       <span>{formatCurrency(team.salaryIn || 0)}</span>
@@ -125,9 +126,9 @@ export default async function TransactionDetailPage({ params }: Props) {
                       <span className="text-muted-foreground">Salary Out:</span>
                       <span>{formatCurrency(team.salaryOut || 0)}</span>
                     </div>
-                    <div className="flex justify-between font-semibold">
+                    <div className="flex justify-between font-semibold pt-1">
                       <span>Net Cap Impact:</span>
-                      <span className={team.netCapImpact >= 0 ? 'text-green-600' : 'text-red-600'}>
+                      <span className={team.netCapImpact >= 0 ? 'text-green-500' : 'text-red-500'}>
                         {team.netCapImpact >= 0 ? '+' : ''}{formatCurrency(team.netCapImpact || 0)}
                       </span>
                     </div>
@@ -142,38 +143,39 @@ export default async function TransactionDetailPage({ params }: Props) {
       {/* Evaluation Breakdown */}
       {transaction.evaluation && (
         <Card>
-          <CardHeader>
-            <CardTitle>Evaluation Breakdown</CardTitle>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Evaluation Breakdown</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Surplus Value</div>
-                <div className={`text-2xl font-bold ${transaction.evaluation.surplusValue >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            {/* Mobile: 2 column grid, Desktop: 5 column grid */}
+            <div className="grid grid-cols-2 gap-2 md:grid-cols-5 md:gap-4">
+              <div className="text-center p-3 md:p-4 bg-muted rounded-lg">
+                <div className="text-[10px] md:text-sm text-muted-foreground mb-1">Surplus Value</div>
+                <div className={`text-lg md:text-2xl font-bold ${transaction.evaluation.surplusValue >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {transaction.evaluation.surplusValue >= 0 ? '+' : ''}{formatCurrency(transaction.evaluation.surplusValue || 0)}
                 </div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Win-Now</div>
-                <div className={`text-2xl font-bold ${getScoreColor(transaction.evaluation.winNowScore || 0)}`}>
+              <div className="text-center p-3 md:p-4 bg-muted rounded-lg">
+                <div className="text-[10px] md:text-sm text-muted-foreground mb-1">Win-Now</div>
+                <div className={`text-lg md:text-2xl font-bold ${getScoreColor(transaction.evaluation.winNowScore || 0)}`}>
                   {transaction.evaluation.winNowScore || 0}
                 </div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Rebuild</div>
-                <div className={`text-2xl font-bold ${getScoreColor(transaction.evaluation.rebuildScore || 0)}`}>
+              <div className="text-center p-3 md:p-4 bg-muted rounded-lg">
+                <div className="text-[10px] md:text-sm text-muted-foreground mb-1">Rebuild</div>
+                <div className={`text-lg md:text-2xl font-bold ${getScoreColor(transaction.evaluation.rebuildScore || 0)}`}>
                   {transaction.evaluation.rebuildScore || 0}
                 </div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Cap Flex</div>
-                <div className={`text-2xl font-bold ${(transaction.evaluation.capFlexibilityImpact || 0) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              <div className="text-center p-3 md:p-4 bg-muted rounded-lg">
+                <div className="text-[10px] md:text-sm text-muted-foreground mb-1">Cap Flex</div>
+                <div className={`text-lg md:text-2xl font-bold ${(transaction.evaluation.capFlexibilityImpact || 0) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
                   {(transaction.evaluation.capFlexibilityImpact || 0) >= 0 ? '+' : ''}{formatCurrency(transaction.evaluation.capFlexibilityImpact || 0)}
                 </div>
               </div>
-              <div className="text-center p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground">Risk</div>
-                <div className={`text-2xl font-bold ${getScoreColor(100 - (transaction.evaluation.riskScore || 0))}`}>
+              <div className="text-center p-3 md:p-4 bg-muted rounded-lg col-span-2 md:col-span-1">
+                <div className="text-[10px] md:text-sm text-muted-foreground mb-1">Risk</div>
+                <div className={`text-lg md:text-2xl font-bold ${getScoreColor(100 - (transaction.evaluation.riskScore || 0))}`}>
                   {transaction.evaluation.riskScore || 0}
                 </div>
               </div>
@@ -185,16 +187,18 @@ export default async function TransactionDetailPage({ params }: Props) {
       {/* Similar Transactions */}
       {transaction.evaluation?.historicalComparisons && transaction.evaluation.historicalComparisons.length > 0 && (
         <Card>
-          <CardHeader>
-            <CardTitle>Similar Historical Transactions</CardTitle>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Similar Transactions</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="space-y-2 md:space-y-3">
               {transaction.evaluation.historicalComparisons.map((comp: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <span>{comp.transactionId?.details?.headline || 'Similar Transaction'}</span>
-                  <Badge variant="outline">
-                    {Math.round((comp.similarityScore || 0) * 100)}% Similar
+                <div key={i} className="flex items-center justify-between p-2 md:p-3 bg-muted rounded-lg gap-2">
+                  <span className="text-xs md:text-sm line-clamp-1 flex-1">
+                    {comp.transactionId?.details?.headline || 'Similar Transaction'}
+                  </span>
+                  <Badge variant="outline" className="text-[10px] md:text-xs flex-shrink-0">
+                    {Math.round((comp.similarityScore || 0) * 100)}% Match
                   </Badge>
                 </div>
               ))}
@@ -205,10 +209,15 @@ export default async function TransactionDetailPage({ params }: Props) {
 
       {/* Source */}
       {transaction.details?.source && (
-        <div className="text-sm text-muted-foreground">
+        <div className="text-xs md:text-sm text-muted-foreground px-1">
           Source: {transaction.details.source}
           {transaction.details.sourceUrl && (
-            <a href={transaction.details.sourceUrl} target="_blank" rel="noopener noreferrer" className="ml-2 underline">
+            <a
+              href={transaction.details.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="ml-2 underline hover:text-white transition-colors"
+            >
               View Original
             </a>
           )}
