@@ -6,6 +6,13 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { Menu, X } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 const navigation = [
   { name: 'Dashboard', href: '/' },
@@ -13,8 +20,17 @@ const navigation = [
   { name: 'Players', href: '/players' },
 ]
 
+const seasons = [
+  { value: '2024-25', label: '2024-25' },
+  { value: '2023-24', label: '2023-24' },
+  { value: '2022-23', label: '2022-23' },
+  { value: '2021-22', label: '2021-22' },
+  { value: '2020-21', label: '2020-21' },
+]
+
 export function MobileNav() {
   const [isOpen, setIsOpen] = useState(false)
+  const [selectedSeason, setSelectedSeason] = useState('2024-25')
   const pathname = usePathname()
 
   // Close menu when route changes
@@ -101,13 +117,22 @@ export function MobileNav() {
           ))}
         </nav>
 
-        {/* Season Badge in Mobile Menu */}
+        {/* Season Selector in Mobile Menu */}
         <div className="px-4 pb-4">
           <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-            <span className="text-sm text-nets-gray">Current Season</span>
-            <span className="font-semibold text-white px-2 py-1 bg-white/10 rounded text-sm">
-              2024-25
-            </span>
+            <span className="text-sm text-nets-gray">Season</span>
+            <Select value={selectedSeason} onValueChange={setSelectedSeason}>
+              <SelectTrigger className="w-[100px] h-8 bg-white/10 border-white/10 text-white font-semibold">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {seasons.map((season) => (
+                  <SelectItem key={season.value} value={season.value}>
+                    {season.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
       </div>
