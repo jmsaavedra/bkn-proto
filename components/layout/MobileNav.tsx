@@ -10,6 +10,7 @@ import { Menu, X } from 'lucide-react'
 const navigation = [
   { name: 'Dashboard', href: '/' },
   { name: 'Transactions', href: '/transactions' },
+  { name: 'Players', href: '/players' },
 ]
 
 export function MobileNav() {

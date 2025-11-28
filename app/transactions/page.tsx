@@ -3,7 +3,14 @@ import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { Card, CardContent } from '@/components/ui/card'
 
-export default function TransactionsPage() {
+interface Props {
+  searchParams: { [key: string]: string | string[] | undefined }
+}
+
+export default function TransactionsPage({ searchParams }: Props) {
+  const typeFilter = typeof searchParams.type === 'string' ? searchParams.type : undefined
+  const searchQuery = typeof searchParams.q === 'string' ? searchParams.q : undefined
+
   return (
     <div className="space-y-4 md:space-y-6">
       <div>
@@ -14,10 +21,12 @@ export default function TransactionsPage() {
         </p>
       </div>
 
-      <TransactionFilters />
+      <Suspense fallback={null}>
+        <TransactionFilters />
+      </Suspense>
 
       <Suspense fallback={<TransactionListSkeleton />}>
-        <TransactionList />
+        <TransactionList type={typeFilter} search={searchQuery} />
       </Suspense>
     </div>
   )

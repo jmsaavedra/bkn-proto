@@ -7,23 +7,44 @@ import { Card, CardContent } from '@/components/ui/card'
 // Ensure Team model is registered for populate
 void Team;
 
-async function getTransactions() {
-  console.log('[TransactionList] getTransactions called')
+interface TransactionListProps {
+  type?: string
+  search?: string
+}
+
+async function getTransactions(type?: string, search?: string) {
+  console.log('[TransactionList] getTransactions called', { type, search })
   try {
     console.log('[TransactionList] Connecting to MongoDB...')
     await connectDB()
     console.log('[TransactionList] Connected, querying transactions...')
 
-    const transactions = await Transaction.find({})
+    // Build query based on filters
+    const query: Record<string, unknown> = {}
+
+    // Type filter (comma-separated list)
+    if (type) {
+      const types = type.split(',').filter(Boolean)
+      if (types.length > 0) {
+        query.type = { $in: types }
+      }
+    }
+
+    // Search filter (searches headline and description)
+    if (search) {
+      query.$or = [
+        { 'details.headline': { $regex: search, $options: 'i' } },
+        { 'details.description': { $regex: search, $options: 'i' } },
+      ]
+    }
+
+    const transactions = await Transaction.find(query)
       .sort({ date: -1 })
-      .limit(50)
+      .limit(100)
       .populate('teams.teamId')
       .lean()
 
     console.log('[TransactionList] Query complete, found:', transactions.length, 'transactions')
-    if (transactions.length > 0) {
-      console.log('[TransactionList] First transaction:', JSON.stringify(transactions[0], null, 2).substring(0, 500))
-    }
     return transactions
   } catch (error) {
     console.error('[TransactionList] Error fetching transactions:', error)
@@ -31,8 +52,8 @@ async function getTransactions() {
   }
 }
 
-export async function TransactionList() {
-  const transactions = await getTransactions()
+export async function TransactionList({ type, search }: TransactionListProps) {
+  const transactions = await getTransactions(type, search)
 
   if (transactions.length === 0) {
     return (

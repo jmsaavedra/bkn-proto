@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Search, X, ChevronDown, ChevronUp, Filter } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useDebouncedCallback } from 'use-debounce'
 
 const transactionTypes = [
   'TRADE',
@@ -21,21 +23,48 @@ const transactionTypes = [
 ]
 
 export function TransactionFilters() {
-  const [search, setSearch] = useState('')
-  const [selectedTypes, setSelectedTypes] = useState<string[]>([])
+  const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Initialize state from URL params
+  const [search, setSearch] = useState(searchParams.get('q') || '')
+  const [selectedTypes, setSelectedTypes] = useState<string[]>(
+    searchParams.get('type')?.split(',').filter(Boolean) || []
+  )
   const [isExpanded, setIsExpanded] = useState(false)
 
+  // Update URL when filters change
+  const updateURL = useCallback((newSearch: string, newTypes: string[]) => {
+    const params = new URLSearchParams()
+    if (newSearch) params.set('q', newSearch)
+    if (newTypes.length > 0) params.set('type', newTypes.join(','))
+
+    const queryString = params.toString()
+    router.push(queryString ? `/transactions?${queryString}` : '/transactions')
+  }, [router])
+
+  // Debounced search to avoid too many URL updates
+  const debouncedSearch = useDebouncedCallback((value: string) => {
+    updateURL(value, selectedTypes)
+  }, 300)
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    debouncedSearch(value)
+  }
+
   const toggleType = (type: string) => {
-    setSelectedTypes(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    )
+    const newTypes = selectedTypes.includes(type)
+      ? selectedTypes.filter(t => t !== type)
+      : [...selectedTypes, type]
+    setSelectedTypes(newTypes)
+    updateURL(search, newTypes)
   }
 
   const clearFilters = () => {
     setSearch('')
     setSelectedTypes([])
+    router.push('/transactions')
   }
 
   const hasFilters = search || selectedTypes.length > 0
@@ -52,7 +81,7 @@ export function TransactionFilters() {
               <Input
                 placeholder="Search..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
                 className="pl-9 h-10"
               />
             </div>
@@ -122,9 +151,6 @@ export function TransactionFilters() {
               </div>
             )}
 
-            <p className="text-[10px] text-muted-foreground mt-3">
-              Filters are UI-only for now
-            </p>
           </div>
 
           {/* Selected Filters Pills (shown when collapsed) */}
@@ -156,7 +182,7 @@ export function TransactionFilters() {
             <Input
               placeholder="Search transactions..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
             />
           </div>
@@ -188,10 +214,6 @@ export function TransactionFilters() {
             </div>
           )}
 
-          {/* Note about filters */}
-          <p className="text-xs text-muted-foreground">
-            Note: Filters are UI-only for now. Full filtering will be implemented with API integration.
-          </p>
         </div>
       </CardContent>
     </Card>
