@@ -45,3 +45,27 @@ export function getTransactionTypeClass(type: string): string {
   }
   return typeMap[type] || ''
 }
+
+// Transaction type to Badge variant mapping
+// Used consistently across all pages for transaction type badges
+export type TransactionBadgeVariant = 'trade' | 'signing' | 'waiver' | 'extension' | 'buyout' | 'default'
+
+export function getTransactionBadgeVariant(type: string): TransactionBadgeVariant {
+  const variantMap: Record<string, TransactionBadgeVariant> = {
+    TRADE: 'trade',
+    SIGNING: 'signing',
+    WAIVER: 'waiver',
+    EXTENSION: 'extension',
+    BUYOUT: 'buyout',
+    TWO_WAY: 'signing',
+    TEN_DAY: 'signing',
+    DRAFT_PICK: 'trade',
+    SIGN_AND_TRADE: 'trade',
+  }
+  return variantMap[type] || 'default'
+}
+
+// Format transaction type for display (e.g., SIGN_AND_TRADE -> "Sign and Trade")
+export function formatTransactionType(type: string): string {
+  return type.toLowerCase().replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
