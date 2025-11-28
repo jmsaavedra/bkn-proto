@@ -37,18 +37,18 @@ export function getTransactionTypeClass(type: string): string {
     SIGNING: 'transaction-signing',
     WAIVER: 'transaction-waiver',
     EXTENSION: 'transaction-extension',
-    BUYOUT: 'transaction-buyout',
     TWO_WAY: 'transaction-signing',
     TEN_DAY: 'transaction-signing',
-    DRAFT_PICK: 'transaction-trade',
-    SIGN_AND_TRADE: 'transaction-trade',
+    EXHIBIT_10: 'transaction-exhibit',
+    CONTRACT_CONVERSION: 'transaction-conversion',
+    WAIVER_CLAIM: 'transaction-waiver',
   }
   return typeMap[type] || ''
 }
 
 // Transaction type to Badge variant mapping
 // Used consistently across all pages for transaction type badges
-export type TransactionBadgeVariant = 'trade' | 'signing' | 'waiver' | 'extension' | 'buyout' | 'default'
+export type TransactionBadgeVariant = 'trade' | 'signing' | 'waiver' | 'extension' | 'exhibit' | 'conversion' | 'default'
 
 export function getTransactionBadgeVariant(type: string): TransactionBadgeVariant {
   const variantMap: Record<string, TransactionBadgeVariant> = {
@@ -56,11 +56,11 @@ export function getTransactionBadgeVariant(type: string): TransactionBadgeVarian
     SIGNING: 'signing',
     WAIVER: 'waiver',
     EXTENSION: 'extension',
-    BUYOUT: 'buyout',
     TWO_WAY: 'signing',
     TEN_DAY: 'signing',
-    DRAFT_PICK: 'trade',
-    SIGN_AND_TRADE: 'trade',
+    EXHIBIT_10: 'exhibit',
+    CONTRACT_CONVERSION: 'conversion',
+    WAIVER_CLAIM: 'waiver',
   }
   return variantMap[type] || 'default'
 }

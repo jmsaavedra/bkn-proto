@@ -18,7 +18,8 @@ const badgeVariants = cva(
         signing: 'border-transparent bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
         waiver: 'border-transparent bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
         extension: 'border-transparent bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100',
-        buyout: 'border-transparent bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100',
+        exhibit: 'border-transparent bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100',
+        conversion: 'border-transparent bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-100',
       },
     },
     defaultVariants: {

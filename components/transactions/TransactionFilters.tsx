@@ -14,11 +14,11 @@ const transactionTypes = [
   'SIGNING',
   'WAIVER',
   'EXTENSION',
-  'BUYOUT',
   'TWO_WAY',
   'TEN_DAY',
-  'DRAFT_PICK',
-  'SIGN_AND_TRADE',
+  'EXHIBIT_10',
+  'CONTRACT_CONVERSION',
+  'WAIVER_CLAIM',
 ]
 
 // Color classes for each transaction type - bright (selected) and dimmed (unselected)
@@ -39,9 +39,13 @@ const typeColorClasses: Record<string, { selected: string; unselected: string }>
     selected: 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700',
     unselected: 'bg-purple-950/30 text-purple-400 border-purple-800/50 hover:bg-purple-900/40 hover:border-purple-700',
   },
-  buyout: {
-    selected: 'bg-orange-600 text-white border-orange-600 hover:bg-orange-700',
-    unselected: 'bg-orange-950/30 text-orange-400 border-orange-800/50 hover:bg-orange-900/40 hover:border-orange-700',
+  exhibit: {
+    selected: 'bg-amber-600 text-white border-amber-600 hover:bg-amber-700',
+    unselected: 'bg-amber-950/30 text-amber-400 border-amber-800/50 hover:bg-amber-900/40 hover:border-amber-700',
+  },
+  conversion: {
+    selected: 'bg-cyan-600 text-white border-cyan-600 hover:bg-cyan-700',
+    unselected: 'bg-cyan-950/30 text-cyan-400 border-cyan-800/50 hover:bg-cyan-900/40 hover:border-cyan-700',
   },
   default: {
     selected: 'bg-zinc-600 text-white border-zinc-600 hover:bg-zinc-700',
