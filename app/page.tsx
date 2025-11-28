@@ -95,7 +95,7 @@ export default async function Home() {
               </span>
             </div>
             <h1 className="text-2xl md:text-5xl font-bold tracking-tight text-white mb-2 md:mb-4">
-              Transaction Evaluator
+              Contract Evaluator
             </h1>
             <p className="text-sm md:text-lg text-zinc-400 max-w-xl">
               Analyze and evaluate NBA transactions from across the league.
@@ -352,7 +352,7 @@ export default async function Home() {
       {/* Footer Note */}
       <footer className="text-center py-6 md:py-8 border-t border-white/10">
         <p className="text-[10px] md:text-xs text-zinc-600">
-          Brooklyn Nets Front Office Transaction Evaluator
+          Brooklyn Nets Front Office Contract Evaluator
         </p>
         <p className="text-[10px] md:text-xs text-zinc-700 mt-1">
           Data sourced from NBA.com, Basketball-Reference, and Spotrac

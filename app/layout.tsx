@@ -8,8 +8,8 @@ import { BottomNav } from '@/components/layout/BottomNav'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Nets Transaction Evaluator',
-  description: 'NBA transaction analysis and evaluation for the Brooklyn Nets front office',
+  title: 'Nets Contract Evaluator',
+  description: 'NBA contract analysis and evaluation for the Brooklyn Nets front office',
   metadataBase: new URL('https://bkn.josdotph.com'),
   robots: {
     index: false,
@@ -20,10 +20,10 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'Nets Transaction Evaluator',
-    description: 'NBA transaction analysis and evaluation for the Brooklyn Nets front office',
+    title: 'Nets Contract Evaluator',
+    description: 'NBA contract analysis and evaluation for the Brooklyn Nets front office',
     url: 'https://bkn.josdotph.com',
-    siteName: 'Nets Transaction Evaluator',
+    siteName: 'Nets Contract Evaluator',
     images: [
       {
         url: '/metaog.jpg',
@@ -37,8 +37,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Nets Transaction Evaluator',
-    description: 'NBA transaction analysis and evaluation for the Brooklyn Nets front office',
+    title: 'Nets Contract Evaluator',
+    description: 'NBA contract analysis and evaluation for the Brooklyn Nets front office',
     images: ['/metaog.jpg'],
   },
   appleWebApp: {
