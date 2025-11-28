@@ -24,6 +24,8 @@ const sortOptions = [
   { value: 'age-desc', label: 'Age (Oldest)' },
   { value: 'contract-desc', label: 'Contract (Highest)' },
   { value: 'contract-asc', label: 'Contract (Lowest)' },
+  { value: 'expiry-asc', label: 'Expiring Soonest' },
+  { value: 'expiry-desc', label: 'Expiring Latest' },
 ]
 
 const positions = [

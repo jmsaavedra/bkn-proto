@@ -26,7 +26,9 @@ function getSortConfig(sort?: string): Record<string, 1 | -1> {
       return { age: -1, 'name.last': 1 }
     case 'contract-desc':
     case 'contract-asc':
-      // Contract sorting handled after fetch
+    case 'expiry-asc':
+    case 'expiry-desc':
+      // Contract/expiry sorting handled after fetch
       return { 'name.last': 1, 'name.first': 1 }
     case 'name-asc':
     default:
@@ -116,6 +118,20 @@ async function getPlayers(search?: string, position?: string, team?: string, sor
         const aValue = a.contract?.totalValue || 0
         const bValue = b.contract?.totalValue || 0
         return aValue - bValue
+      })
+    } else if (sort === 'expiry-asc') {
+      // Expiring soonest first (players without contracts at the end)
+      playersWithContracts.sort((a, b) => {
+        const aExpiry = a.contract?.endSeason || 'zzzz'
+        const bExpiry = b.contract?.endSeason || 'zzzz'
+        return aExpiry.localeCompare(bExpiry)
+      })
+    } else if (sort === 'expiry-desc') {
+      // Expiring latest first (players without contracts at the end)
+      playersWithContracts.sort((a, b) => {
+        const aExpiry = a.contract?.endSeason || ''
+        const bExpiry = b.contract?.endSeason || ''
+        return bExpiry.localeCompare(aExpiry)
       })
     }
 
