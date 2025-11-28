@@ -2,9 +2,56 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import { ArrowRight, TrendingUp, Users, DollarSign, FileText, Target, BarChart3 } from 'lucide-react'
+import connectDB from '@/lib/mongodb'
+import Transaction from '@/lib/models/Transaction'
+import Player from '@/lib/models/Player'
+import Team from '@/lib/models/Team'
+import SalaryCap from '@/lib/models/SalaryCap'
+import { getTransactionBadgeVariant, formatTransactionType, formatDate } from '@/lib/utils'
 
-export default function Home() {
+// Ensure models are registered
+void Team
+
+// Make page dynamic so it fetches fresh data
+export const dynamic = 'force-dynamic'
+
+async function getDashboardStats() {
+  await connectDB()
+
+  const [transactionCount, tradeCount, playerCount, salaryCap] = await Promise.all([
+    Transaction.countDocuments(),
+    Transaction.countDocuments({ type: 'TRADE' }),
+    Player.countDocuments({ status: 'active' }),
+    SalaryCap.findOne({ season: '2024-25' }).lean(),
+  ])
+
+  return {
+    transactionCount,
+    tradeCount,
+    playerCount,
+    salaryCap,
+  }
+}
+
+async function getRecentTransactions() {
+  await connectDB()
+
+  const transactions = await Transaction.find()
+    .sort({ date: -1 })
+    .limit(5)
+    .populate('teams.teamId')
+    .lean()
+
+  return transactions
+}
+
+export default async function Home() {
+  const [stats, recentTransactions] = await Promise.all([
+    getDashboardStats(),
+    getRecentTransactions(),
+  ])
   return (
     <div className="space-y-6 md:space-y-8">
       {/* Hero Section with Nets Branding */}
@@ -67,25 +114,25 @@ export default function Home() {
         <div className="hidden md:grid md:grid-cols-4 gap-4">
           <StatCard
             title="Transactions"
-            value="--"
-            subtitle="Last 12 months"
+            value={stats.transactionCount.toLocaleString()}
+            subtitle="In database"
             icon={<FileText className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
             title="Trades"
-            value="--"
-            subtitle="Last 12 months"
+            value={stats.tradeCount.toLocaleString()}
+            subtitle="Trade transactions"
             icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
             title="Players"
-            value="--"
+            value={stats.playerCount.toLocaleString()}
             subtitle="Active in database"
             icon={<Users className="h-4 w-4 text-zinc-500" />}
           />
           <StatCard
             title="2024-25 Cap"
-            value="$140.6M"
+            value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
             subtitle="Salary cap"
             icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
           />
@@ -95,8 +142,8 @@ export default function Home() {
           <div className="min-w-[140px] snap-start">
             <StatCard
               title="Transactions"
-              value="--"
-              subtitle="Last 12 months"
+              value={stats.transactionCount.toLocaleString()}
+              subtitle="In database"
               icon={<FileText className="h-4 w-4 text-zinc-500" />}
               compact
             />
@@ -104,8 +151,8 @@ export default function Home() {
           <div className="min-w-[140px] snap-start">
             <StatCard
               title="Trades"
-              value="--"
-              subtitle="Last 12 months"
+              value={stats.tradeCount.toLocaleString()}
+              subtitle="Trade transactions"
               icon={<TrendingUp className="h-4 w-4 text-zinc-500" />}
               compact
             />
@@ -113,7 +160,7 @@ export default function Home() {
           <div className="min-w-[140px] snap-start">
             <StatCard
               title="Players"
-              value="--"
+              value={stats.playerCount.toLocaleString()}
               subtitle="Active"
               icon={<Users className="h-4 w-4 text-zinc-500" />}
               compact
@@ -122,7 +169,7 @@ export default function Home() {
           <div className="min-w-[140px] snap-start">
             <StatCard
               title="2024-25 Cap"
-              value="$140.6M"
+              value={stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
               subtitle="Salary cap"
               icon={<DollarSign className="h-4 w-4 text-zinc-500" />}
               compact
@@ -133,8 +180,8 @@ export default function Home() {
 
       {/* Main Actions */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
-        <Card className="group border-white/10 hover:border-white/30 transition-all duration-300 overflow-hidden touch-active">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Card className="group border-white/10 hover:border-white/30 transition-all duration-300 overflow-hidden touch-active relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <CardHeader className="relative p-4 md:p-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-white/10">
@@ -148,17 +195,17 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent className="relative p-4 pt-0 md:p-6 md:pt-0">
-            <Link href="/transactions">
-              <Button className="w-full bg-white text-black hover:bg-zinc-200 font-semibold h-11 md:h-10">
+            <Button asChild className="w-full bg-white text-black hover:bg-zinc-200 font-semibold h-11 md:h-10">
+              <Link href="/transactions">
                 View All Transactions
                 <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </CardContent>
         </Card>
 
-        <Card className="group border-white/10 hover:border-white/30 transition-all duration-300 overflow-hidden touch-active">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <Card className="group border-white/10 hover:border-white/30 transition-all duration-300 overflow-hidden touch-active relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
           <CardHeader className="relative p-4 md:p-6">
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2 rounded-lg bg-white/10">
@@ -192,58 +239,114 @@ export default function Home() {
             <div className="hidden md:grid md:grid-cols-4 gap-6">
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Salary Cap</p>
-                <p className="text-2xl font-bold text-white">$140.6M</p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Luxury Tax</p>
-                <p className="text-2xl font-bold text-white">$170.8M</p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : '$170.8M'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">First Apron</p>
-                <p className="text-2xl font-bold text-white">$178.1M</p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : '$178.1M'}
+                </p>
               </div>
               <div>
                 <p className="text-xs text-zinc-500 uppercase tracking-wider mb-1">Second Apron</p>
-                <p className="text-2xl font-bold text-white">$188.9M</p>
+                <p className="text-2xl font-bold text-white">
+                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : '$188.9M'}
+                </p>
               </div>
             </div>
             {/* Mobile 2x2 grid */}
             <div className="grid grid-cols-2 gap-4 md:hidden">
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Salary Cap</p>
-                <p className="text-xl font-bold text-white">$140.6M</p>
+                <p className="text-xl font-bold text-white">
+                  {stats.salaryCap ? `$${(stats.salaryCap.salaryCap / 1000000).toFixed(1)}M` : '$140.6M'}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Luxury Tax</p>
-                <p className="text-xl font-bold text-white">$170.8M</p>
+                <p className="text-xl font-bold text-white">
+                  {stats.salaryCap ? `$${(stats.salaryCap.luxuryTax / 1000000).toFixed(1)}M` : '$170.8M'}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">First Apron</p>
-                <p className="text-xl font-bold text-white">$178.1M</p>
+                <p className="text-xl font-bold text-white">
+                  {stats.salaryCap?.firstApron ? `$${(stats.salaryCap.firstApron / 1000000).toFixed(1)}M` : '$178.1M'}
+                </p>
               </div>
               <div>
                 <p className="text-[10px] text-zinc-500 uppercase tracking-wider mb-0.5">Second Apron</p>
-                <p className="text-xl font-bold text-white">$188.9M</p>
+                <p className="text-xl font-bold text-white">
+                  {stats.salaryCap?.secondApron ? `$${(stats.salaryCap.secondApron / 1000000).toFixed(1)}M` : '$188.9M'}
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </section>
 
-      {/* Recent Activity Placeholder */}
+      {/* Recent Transactions */}
       <section>
-        <h2 className="text-lg md:text-xl font-semibold text-white mb-3 md:mb-4">Recent Transactions</h2>
-        <Card className="border-white/10 border-dashed">
-          <CardContent className="py-10 md:py-16 text-center">
-            <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/5 mb-3 md:mb-4">
-              <FileText className="h-6 w-6 md:h-8 md:w-8 text-zinc-600" />
-            </div>
-            <p className="text-zinc-400 font-medium text-sm md:text-base">No transactions loaded yet</p>
-            <p className="text-xs md:text-sm text-zinc-600 mt-2 max-w-md mx-auto px-4">
-              Run the seeding scripts in <code className="text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded">/scripts</code> to populate the database.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="flex items-center justify-between mb-3 md:mb-4">
+          <h2 className="text-lg md:text-xl font-semibold text-white">Recent Transactions</h2>
+          <Button asChild variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+            <Link href="/transactions">
+              View All
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
+        {recentTransactions.length > 0 ? (
+          <div className="space-y-3">
+            {recentTransactions.map((transaction: any) => {
+              const teams = transaction.teams?.map((t: any) => t.teamId?.abbreviation).filter(Boolean).join(' ↔ ') || 'N/A'
+              return (
+                <Link key={transaction._id} href={`/transactions/${transaction._id}`}>
+                  <Card className="border-white/10 hover:border-white/20 hover:bg-white/5 transition-all cursor-pointer">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge variant={getTransactionBadgeVariant(transaction.type || '')} className="text-xs">
+                              {formatTransactionType(transaction.type || '')}
+                            </Badge>
+                            <span className="text-xs text-zinc-500">{teams}</span>
+                          </div>
+                          <p className="text-sm text-white font-medium truncate">
+                            {transaction.details?.headline || 'Transaction'}
+                          </p>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          <p className="text-xs text-zinc-500">{formatDate(transaction.date)}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <Card className="border-white/10 border-dashed">
+            <CardContent className="py-10 md:py-16 text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 md:w-16 md:h-16 rounded-full bg-white/5 mb-3 md:mb-4">
+                <FileText className="h-6 w-6 md:h-8 md:w-8 text-zinc-600" />
+              </div>
+              <p className="text-zinc-400 font-medium text-sm md:text-base">No transactions loaded yet</p>
+              <p className="text-xs md:text-sm text-zinc-600 mt-2 max-w-md mx-auto px-4">
+                Run the seeding scripts in <code className="text-zinc-400 bg-white/5 px-1.5 py-0.5 rounded">/scripts</code> to populate the database.
+              </p>
+            </CardContent>
+          </Card>
+        )}
       </section>
 
       {/* Footer Note */}
