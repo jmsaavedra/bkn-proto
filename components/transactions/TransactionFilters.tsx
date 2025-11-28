@@ -1,13 +1,12 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Search, X, ChevronDown, ChevronUp, Filter } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { cn, getTransactionBadgeVariant, formatTransactionType } from '@/lib/utils'
 import { useDebouncedCallback } from 'use-debounce'
 
 const transactionTypes = [
@@ -21,6 +20,40 @@ const transactionTypes = [
   'DRAFT_PICK',
   'SIGN_AND_TRADE',
 ]
+
+// Color classes for each transaction type - bright (selected) and dimmed (unselected)
+const typeColorClasses: Record<string, { selected: string; unselected: string }> = {
+  trade: {
+    selected: 'bg-blue-600 text-white border-blue-600 hover:bg-blue-700',
+    unselected: 'bg-blue-950/30 text-blue-400 border-blue-800/50 hover:bg-blue-900/40 hover:border-blue-700',
+  },
+  signing: {
+    selected: 'bg-green-600 text-white border-green-600 hover:bg-green-700',
+    unselected: 'bg-green-950/30 text-green-400 border-green-800/50 hover:bg-green-900/40 hover:border-green-700',
+  },
+  waiver: {
+    selected: 'bg-red-600 text-white border-red-600 hover:bg-red-700',
+    unselected: 'bg-red-950/30 text-red-400 border-red-800/50 hover:bg-red-900/40 hover:border-red-700',
+  },
+  extension: {
+    selected: 'bg-purple-600 text-white border-purple-600 hover:bg-purple-700',
+    unselected: 'bg-purple-950/30 text-purple-400 border-purple-800/50 hover:bg-purple-900/40 hover:border-purple-700',
+  },
+  buyout: {
+    selected: 'bg-orange-600 text-white border-orange-600 hover:bg-orange-700',
+    unselected: 'bg-orange-950/30 text-orange-400 border-orange-800/50 hover:bg-orange-900/40 hover:border-orange-700',
+  },
+  default: {
+    selected: 'bg-zinc-600 text-white border-zinc-600 hover:bg-zinc-700',
+    unselected: 'bg-zinc-950/30 text-zinc-400 border-zinc-800/50 hover:bg-zinc-900/40 hover:border-zinc-700',
+  },
+}
+
+function getFilterChipClasses(type: string, isSelected: boolean): string {
+  const variant = getTransactionBadgeVariant(type)
+  const colors = typeColorClasses[variant] || typeColorClasses.default
+  return isSelected ? colors.selected : colors.unselected
+}
 
 export function TransactionFilters() {
   const router = useRouter()
@@ -122,17 +155,16 @@ export function TransactionFilters() {
             </div>
             <div className="flex flex-wrap gap-1.5">
               {transactionTypes.map((type) => (
-                <Badge
+                <button
                   key={type}
-                  variant={selectedTypes.includes(type) ? 'default' : 'outline'}
                   className={cn(
-                    'cursor-pointer text-[10px] px-2 py-1 touch-target',
-                    selectedTypes.includes(type) && 'bg-white text-black'
+                    'inline-flex items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold transition-colors cursor-pointer touch-target',
+                    getFilterChipClasses(type, selectedTypes.includes(type))
                   )}
                   onClick={() => toggleType(type)}
                 >
-                  {type.replace('_', ' ')}
-                </Badge>
+                  {formatTransactionType(type)}
+                </button>
               ))}
             </div>
 
@@ -157,13 +189,15 @@ export function TransactionFilters() {
           {!isExpanded && selectedTypes.length > 0 && (
             <div className="flex items-center gap-1.5 mt-2 overflow-x-auto scrollbar-hide pb-1">
               {selectedTypes.slice(0, 3).map((type) => (
-                <Badge
+                <span
                   key={type}
-                  variant="default"
-                  className="text-[10px] px-2 py-0.5 bg-white/10 flex-shrink-0"
+                  className={cn(
+                    'inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold flex-shrink-0',
+                    getFilterChipClasses(type, true)
+                  )}
                 >
-                  {type.replace('_', ' ')}
-                </Badge>
+                  {formatTransactionType(type)}
+                </span>
               ))}
               {selectedTypes.length > 3 && (
                 <span className="text-[10px] text-muted-foreground flex-shrink-0">
@@ -192,14 +226,16 @@ export function TransactionFilters() {
             <div className="text-sm font-medium mb-2">Transaction Type</div>
             <div className="flex flex-wrap gap-2">
               {transactionTypes.map((type) => (
-                <Badge
+                <button
                   key={type}
-                  variant={selectedTypes.includes(type) ? 'default' : 'outline'}
-                  className="cursor-pointer"
+                  className={cn(
+                    'inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold transition-colors cursor-pointer',
+                    getFilterChipClasses(type, selectedTypes.includes(type))
+                  )}
                   onClick={() => toggleType(type)}
                 >
-                  {type.replace('_', ' ')}
-                </Badge>
+                  {formatTransactionType(type)}
+                </button>
               ))}
             </div>
           </div>
