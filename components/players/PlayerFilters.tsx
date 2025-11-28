@@ -25,21 +25,21 @@ export function PlayerFilters() {
   const searchParams = useSearchParams()
 
   const [search, setSearch] = useState(searchParams.get('q') || '')
-  const [selectedPosition, setSelectedPosition] = useState(
-    searchParams.get('position') || ''
+  const [selectedPositions, setSelectedPositions] = useState<string[]>(
+    searchParams.get('position')?.split(',').filter(Boolean) || []
   )
 
-  const updateURL = useCallback((newSearch: string, newPosition: string) => {
+  const updateURL = useCallback((newSearch: string, newPositions: string[]) => {
     const params = new URLSearchParams()
     if (newSearch) params.set('q', newSearch)
-    if (newPosition) params.set('position', newPosition)
+    if (newPositions.length > 0) params.set('position', newPositions.join(','))
 
     const queryString = params.toString()
     router.push(queryString ? `/players?${queryString}` : '/players')
   }, [router])
 
   const debouncedSearch = useDebouncedCallback((value: string) => {
-    updateURL(value, selectedPosition)
+    updateURL(value, selectedPositions)
   }, 300)
 
   const handleSearchChange = (value: string) => {
@@ -48,18 +48,20 @@ export function PlayerFilters() {
   }
 
   const togglePosition = (position: string) => {
-    const newPosition = selectedPosition === position ? '' : position
-    setSelectedPosition(newPosition)
-    updateURL(search, newPosition)
+    const newPositions = selectedPositions.includes(position)
+      ? selectedPositions.filter(p => p !== position)
+      : [...selectedPositions, position]
+    setSelectedPositions(newPositions)
+    updateURL(search, newPositions)
   }
 
   const clearFilters = () => {
     setSearch('')
-    setSelectedPosition('')
+    setSelectedPositions([])
     router.push('/players')
   }
 
-  const hasFilters = search || selectedPosition
+  const hasFilters = search || selectedPositions.length > 0
 
   return (
     <Card>
@@ -83,10 +85,10 @@ export function PlayerFilters() {
               {positions.map((pos) => (
                 <Badge
                   key={pos.value}
-                  variant={selectedPosition === pos.value ? 'default' : 'outline'}
+                  variant={selectedPositions.includes(pos.value) ? 'default' : 'outline'}
                   className={cn(
                     'cursor-pointer',
-                    selectedPosition === pos.value && 'bg-white text-black'
+                    selectedPositions.includes(pos.value) && 'bg-white text-black'
                   )}
                   onClick={() => togglePosition(pos.value)}
                 >

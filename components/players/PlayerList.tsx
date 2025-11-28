@@ -29,10 +29,29 @@ async function getPlayers(search?: string, position?: string, team?: string) {
       ]
     }
 
-    // Position filter - escape special regex characters (like hyphen in G-F)
+    // Position filter - supports multiple comma-separated positions
     if (position) {
-      const escapedPosition = position.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
-      query.position = { $regex: escapedPosition, $options: 'i' }
+      const positions = position.split(',').filter(Boolean)
+      if (positions.length === 1) {
+        const escapedPosition = positions[0].replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
+        query.position = { $regex: escapedPosition, $options: 'i' }
+      } else if (positions.length > 1) {
+        // Use $in with regex for multiple positions
+        const positionQueries = positions.map(p => {
+          const escaped = p.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
+          return { position: { $regex: escaped, $options: 'i' } }
+        })
+        // Merge with existing $or if present (from search)
+        if (query.$or) {
+          query.$and = [
+            { $or: query.$or as Record<string, unknown>[] },
+            { $or: positionQueries }
+          ]
+          delete query.$or
+        } else {
+          query.$or = positionQueries
+        }
+      }
     }
 
     // Team filter
