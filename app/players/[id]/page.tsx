@@ -175,74 +175,11 @@ export default async function PlayerDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      {/* Season Stats */}
-      {player.trajectory?.seasonStats && player.trajectory.seasonStats.length > 0 && (
-        <Card>
-          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg">Season Stats</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-white/10">
-                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Season</th>
-                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Team</th>
-                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">GP</th>
-                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">MPG</th>
-                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">PPG</th>
-                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">RPG</th>
-                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">APG</th>
-                    <th className="text-right py-2 font-medium text-muted-foreground">PER</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {player.trajectory.seasonStats.map((stat: any, i: number) => (
-                    <tr key={i} className="border-b border-white/5 last:border-0">
-                      <td className="py-2 pr-4">{stat.season}</td>
-                      <td className="py-2 pr-4">{stat.team}</td>
-                      <td className="py-2 pr-4 text-right">{stat.gamesPlayed}</td>
-                      <td className="py-2 pr-4 text-right">{stat.mpg.toFixed(1)}</td>
-                      <td className="py-2 pr-4 text-right font-medium">{stat.ppg.toFixed(1)}</td>
-                      <td className="py-2 pr-4 text-right">{stat.rpg.toFixed(1)}</td>
-                      <td className="py-2 pr-4 text-right">{stat.apg.toFixed(1)}</td>
-                      <td className="py-2 text-right">{stat.per.toFixed(1)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Injury History */}
-      {player.trajectory?.injuryHistory && player.trajectory.injuryHistory.length > 0 && (
-        <Card>
-          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg">Injury History</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
-            <div className="space-y-2">
-              {player.trajectory.injuryHistory.map((injury: any, i: number) => (
-                <div key={i} className="flex items-center justify-between p-2 bg-muted rounded-lg">
-                  <div>
-                    <span className="font-medium">{injury.type}</span>
-                    <span className="text-muted-foreground text-sm ml-2">({injury.season})</span>
-                  </div>
-                  <Badge variant="secondary">{injury.gamesOut} games</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Contract Information */}
+      {/* Contract Info */}
       {contracts.length > 0 && (
         <Card>
           <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg">Contract History</CardTitle>
+            <CardTitle className="text-base md:text-lg">Contract Info</CardTitle>
           </CardHeader>
           <CardContent className="p-4 md:p-6 pt-0 md:pt-0 space-y-6">
             {contracts.map((contract: any, idx: number) => (
@@ -332,6 +269,70 @@ export default async function PlayerDetailPage({ params }: Props) {
           </CardContent>
         </Card>
       )}
+
+      {/* Season Stats */}
+      {player.trajectory?.seasonStats && player.trajectory.seasonStats.length > 0 && (
+        <Card>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Season Stats</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Season</th>
+                    <th className="text-left py-2 pr-4 font-medium text-muted-foreground">Team</th>
+                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">GP</th>
+                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">MPG</th>
+                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">PPG</th>
+                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">RPG</th>
+                    <th className="text-right py-2 pr-4 font-medium text-muted-foreground">APG</th>
+                    <th className="text-right py-2 font-medium text-muted-foreground">PER</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {player.trajectory.seasonStats.map((stat: any, i: number) => (
+                    <tr key={i} className="border-b border-white/5 last:border-0">
+                      <td className="py-2 pr-4">{stat.season}</td>
+                      <td className="py-2 pr-4">{stat.team}</td>
+                      <td className="py-2 pr-4 text-right">{stat.gamesPlayed}</td>
+                      <td className="py-2 pr-4 text-right">{stat.mpg.toFixed(1)}</td>
+                      <td className="py-2 pr-4 text-right font-medium">{stat.ppg.toFixed(1)}</td>
+                      <td className="py-2 pr-4 text-right">{stat.rpg.toFixed(1)}</td>
+                      <td className="py-2 pr-4 text-right">{stat.apg.toFixed(1)}</td>
+                      <td className="py-2 text-right">{stat.per.toFixed(1)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Injury History */}
+      {player.trajectory?.injuryHistory && player.trajectory.injuryHistory.length > 0 && (
+        <Card>
+          <CardHeader className="p-4 md:p-6 pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Injury History</CardTitle>
+          </CardHeader>
+          <CardContent className="p-4 md:p-6 pt-0 md:pt-0">
+            <div className="space-y-2">
+              {player.trajectory.injuryHistory.map((injury: any, i: number) => (
+                <div key={i} className="flex items-center justify-between p-2 bg-muted rounded-lg">
+                  <div>
+                    <span className="font-medium">{injury.type}</span>
+                    <span className="text-muted-foreground text-sm ml-2">({injury.season})</span>
+                  </div>
+                  <Badge variant="secondary">{injury.gamesOut} games</Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
     </div>
   )
 }
