@@ -148,7 +148,9 @@ def scrape_transactions_page(season_year):
         all_lis = content.find_all('li')
 
         for li in all_lis:
-            text = li.get_text(strip=True)
+            text = li.get_text(separator=' ', strip=True)
+            # Collapse multiple spaces into single space
+            text = re.sub(r'\s+', ' ', text).strip()
             if not text:
                 continue
 
