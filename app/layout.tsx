@@ -11,6 +11,14 @@ export const metadata: Metadata = {
   title: 'Nets Transaction Evaluator',
   description: 'NBA transaction analysis and evaluation for the Brooklyn Nets front office',
   metadataBase: new URL('https://bkn.josdotph.com'),
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
   openGraph: {
     title: 'Nets Transaction Evaluator',
     description: 'NBA transaction analysis and evaluation for the Brooklyn Nets front office',
