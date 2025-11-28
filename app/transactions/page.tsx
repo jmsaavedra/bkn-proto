@@ -3,6 +3,7 @@ import { TransactionList } from '@/components/transactions/TransactionList'
 import { TransactionFilters } from '@/components/transactions/TransactionFilters'
 import { SeasonSelector } from '@/components/SeasonSelector'
 import { Card, CardContent } from '@/components/ui/card'
+import { getSeasonFromCookieServer } from '@/lib/season-server'
 
 interface Props {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>
@@ -12,7 +13,8 @@ export default async function TransactionsPage({ searchParams }: Props) {
   const params = await searchParams
   const typeFilter = typeof params.type === 'string' ? params.type : undefined
   const searchQuery = typeof params.q === 'string' ? params.q : undefined
-  const season = typeof params.season === 'string' ? params.season : '2024-25'
+  // Use URL param if present, otherwise fall back to cookie
+  const season = typeof params.season === 'string' ? params.season : await getSeasonFromCookieServer()
 
   return (
     <div className="space-y-4 md:space-y-6">

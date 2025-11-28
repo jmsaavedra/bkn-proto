@@ -142,9 +142,22 @@ export function PlayerCard({ player }: PlayerCardProps) {
                   </div>
                 </div>
               )}
+
+              {/* Status badges - mobile: below info, desktop: hidden here */}
+              <div className="flex gap-1 mt-2 md:hidden">
+                <Badge variant={statusBadgeVariant} className="text-xs capitalize">
+                  {player.status}
+                </Badge>
+                {player.trajectory?.careerArc && player.trajectory.careerArc !== 'unknown' && (
+                  <Badge variant={arcBadgeVariant} className="text-xs capitalize">
+                    {player.trajectory.careerArc}
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            {/* Status badges - desktop: right column */}
+            <div className="hidden md:flex flex-col items-end gap-1 flex-shrink-0">
               <Badge variant={statusBadgeVariant} className="text-xs capitalize">
                 {player.status}
               </Badge>

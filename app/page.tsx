@@ -12,6 +12,7 @@ import Player from '@/lib/models/Player'
 import Team from '@/lib/models/Team'
 import SalaryCap from '@/lib/models/SalaryCap'
 import { getTransactionBadgeVariant, formatTransactionType, formatDate } from '@/lib/utils'
+import { getSeasonFromCookieServer } from '@/lib/season-server'
 
 // Ensure models are registered
 void Team
@@ -80,7 +81,8 @@ export default async function Home({
   searchParams: Promise<{ season?: string }>
 }) {
   const params = await searchParams
-  const season = params.season || '2024-25'
+  // Use URL param if present, otherwise fall back to cookie
+  const season = params.season || await getSeasonFromCookieServer()
 
   const [stats, recentTransactions] = await Promise.all([
     getDashboardStats(season),

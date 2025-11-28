@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { usePathname, useSearchParams, useRouter } from 'next/navigation'
 import {
   Select,
@@ -8,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { setSeasonCookie, getSeasonFromCookie, DEFAULT_SEASON } from '@/lib/season'
 
 const seasons = [
   { value: 'all', label: 'All Seasons' },
@@ -26,9 +28,21 @@ export function SeasonSelector({ className }: SeasonSelectorProps) {
   const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
-  const selectedSeason = searchParams.get('season') || '2024-25'
+  const [selectedSeason, setSelectedSeason] = useState(DEFAULT_SEASON)
+
+  // On mount, read from URL param first, then cookie
+  useEffect(() => {
+    const urlSeason = searchParams.get('season')
+    if (urlSeason) {
+      setSelectedSeason(urlSeason)
+    } else {
+      setSelectedSeason(getSeasonFromCookie())
+    }
+  }, [searchParams])
 
   const handleSeasonChange = (season: string) => {
+    setSelectedSeason(season)
+    setSeasonCookie(season)
     const params = new URLSearchParams(searchParams.toString())
     params.set('season', season)
     router.push(`${pathname}?${params.toString()}`)
