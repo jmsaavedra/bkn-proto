@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -12,6 +13,7 @@ interface PlayerCardProps {
     }
     position: string
     age: number
+    imageUrl?: string
     currentTeamId?: {
       abbreviation: string
       fullName: string
@@ -62,16 +64,33 @@ export function PlayerCard({ player }: PlayerCardProps) {
     <Link href={`/players/${player._id}`}>
       <Card className="hover:bg-white/5 transition-colors cursor-pointer">
         <CardContent className="p-4">
-          <div className="flex items-start justify-between gap-4">
+          <div className="flex items-start gap-3">
+            {/* Player Headshot */}
+            <div className="relative w-14 h-14 md:w-16 md:h-16 flex-shrink-0 rounded-full overflow-hidden bg-muted">
+              {player.imageUrl ? (
+                <Image
+                  src={player.imageUrl}
+                  alt={player.name.full}
+                  fill
+                  className="object-cover object-top"
+                  sizes="(max-width: 768px) 56px, 64px"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xl font-bold">
+                  {player.name.first[0]}{player.name.last[0]}
+                </div>
+              )}
+            </div>
+
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
-                <h3 className="font-semibold text-lg truncate">{player.name.full}</h3>
+                <h3 className="font-semibold text-base md:text-lg truncate">{player.name.full}</h3>
                 <Badge variant="outline" className="text-xs flex-shrink-0">
                   {player.position}
                 </Badge>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+              <div className="flex items-center gap-2 text-xs md:text-sm text-muted-foreground mb-2">
                 {player.currentTeamId ? (
                   <span>{player.currentTeamId.abbreviation}</span>
                 ) : (
@@ -88,7 +107,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
               </div>
 
               {latestStats && (
-                <div className="flex gap-4 text-sm">
+                <div className="flex gap-3 md:gap-4 text-xs md:text-sm">
                   <div>
                     <span className="text-muted-foreground">PPG:</span>{' '}
                     <span className="font-medium">{latestStats.ppg.toFixed(1)}</span>
@@ -105,7 +124,7 @@ export function PlayerCard({ player }: PlayerCardProps) {
               )}
             </div>
 
-            <div className="flex flex-col items-end gap-1">
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
               <Badge variant={statusBadgeVariant} className="text-xs capitalize">
                 {player.status}
               </Badge>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -67,8 +68,26 @@ export default async function PlayerDetailPage({ params }: Props) {
       </Link>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
-        <div className="flex-1">
+      <div className="flex items-start gap-4 md:gap-6">
+        {/* Player Headshot */}
+        <div className="relative w-24 h-24 md:w-32 md:h-32 flex-shrink-0 rounded-full overflow-hidden bg-muted ring-2 ring-white/10">
+          {player.imageUrl ? (
+            <Image
+              src={player.imageUrl}
+              alt={player.name.full}
+              fill
+              className="object-cover object-top"
+              sizes="(max-width: 768px) 96px, 128px"
+              priority
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-3xl md:text-4xl font-bold">
+              {player.name.first[0]}{player.name.last[0]}
+            </div>
+          )}
+        </div>
+
+        <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 md:gap-3 mb-2 flex-wrap">
             <Badge variant="outline" className="text-xs md:text-sm">
               {player.position}
