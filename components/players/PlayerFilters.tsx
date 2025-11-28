@@ -10,7 +10,15 @@ import { Search, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useDebouncedCallback } from 'use-debounce'
 
-const positions = ['G', 'F', 'C', 'G-F', 'F-C', 'F-G', 'C-F']
+const positions = [
+  { value: 'Guard', label: 'G' },
+  { value: 'Forward', label: 'F' },
+  { value: 'Center', label: 'C' },
+  { value: 'Guard-Forward', label: 'G-F' },
+  { value: 'Forward-Guard', label: 'F-G' },
+  { value: 'Forward-Center', label: 'F-C' },
+  { value: 'Center-Forward', label: 'C-F' },
+]
 
 export function PlayerFilters() {
   const router = useRouter()
@@ -72,17 +80,17 @@ export function PlayerFilters() {
           <div>
             <div className="text-sm font-medium mb-2">Position</div>
             <div className="flex flex-wrap gap-2">
-              {positions.map((position) => (
+              {positions.map((pos) => (
                 <Badge
-                  key={position}
-                  variant={selectedPosition === position ? 'default' : 'outline'}
+                  key={pos.value}
+                  variant={selectedPosition === pos.value ? 'default' : 'outline'}
                   className={cn(
                     'cursor-pointer',
-                    selectedPosition === position && 'bg-white text-black'
+                    selectedPosition === pos.value && 'bg-white text-black'
                   )}
-                  onClick={() => togglePosition(position)}
+                  onClick={() => togglePosition(pos.value)}
                 >
-                  {position}
+                  {pos.label}
                 </Badge>
               ))}
             </div>

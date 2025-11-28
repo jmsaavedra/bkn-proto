@@ -29,9 +29,10 @@ async function getPlayers(search?: string, position?: string, team?: string) {
       ]
     }
 
-    // Position filter
+    // Position filter - escape special regex characters (like hyphen in G-F)
     if (position) {
-      query.position = { $regex: position, $options: 'i' }
+      const escapedPosition = position.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
+      query.position = { $regex: escapedPosition, $options: 'i' }
     }
 
     // Team filter
