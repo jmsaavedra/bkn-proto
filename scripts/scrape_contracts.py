@@ -173,21 +173,38 @@ def scrape_team_salaries(team_abbr, team_slug):
         if len(cells) < 2:
             continue
 
-        # First cell usually contains player name
-        name_cell = cells[0]
-        player_link = name_cell.find('a')
+        # Find the cell with player name (look for <a> tag with player link)
+        player_name = None
+        name_cell_index = 0
 
-        if player_link:
-            player_name = player_link.get_text(strip=True)
-        else:
-            player_name = name_cell.get_text(strip=True)
+        for idx, cell in enumerate(cells):
+            player_link = cell.find('a')
+            if player_link and 'player' in (player_link.get('href', '') or ''):
+                player_name = player_link.get_text(strip=True)
+                name_cell_index = idx
+                break
+            # Also check for name without link
+            cell_text = cell.get_text(strip=True)
+            # Skip if it's just a number (ranking)
+            if cell_text and not cell_text.isdigit() and not cell_text.startswith('$'):
+                if not player_name and len(cell_text) > 2:
+                    # Likely a player name if it's not a number or salary
+                    player_link = cell.find('a')
+                    if player_link:
+                        player_name = player_link.get_text(strip=True)
+                        name_cell_index = idx
+                        break
 
-        if not player_name or player_name.lower() in ['player', 'total', 'totals', 'cap maximum']:
+        if not player_name:
             continue
 
-        # Parse salary cells
+        if player_name.lower() in ['player', 'total', 'totals', 'cap maximum', 'name']:
+            continue
+
+        # Parse salary cells (everything after name cell)
+        salary_cells = cells[name_cell_index + 1:]
         season_salaries = []
-        for i, cell in enumerate(cells[1:], 0):
+        for i, cell in enumerate(salary_cells):
             if i >= len(seasons):
                 break
 
